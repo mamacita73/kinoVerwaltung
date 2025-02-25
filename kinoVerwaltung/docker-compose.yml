@@ -25,5 +25,13 @@ services:
       - "5672:5672"    # Kommunikation mit Spring Boot
       - "15672:15672"  # Web-Admin Interface für RabbitMQ
 
+
+  frontend:
+    build:
+      context: ./kino-frontend
+    ports:
+      - "3000:3000"
+
+
 volumes:
   postgres_data:
