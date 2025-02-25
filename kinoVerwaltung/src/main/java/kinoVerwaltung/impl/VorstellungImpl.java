@@ -9,6 +9,7 @@ import java.util.Date;
 
 import kinoVerwaltung.Buchung;
 import kinoVerwaltung.KinoVerwaltungPackage;
+import kinoVerwaltung.Sitzplatz;
 import kinoVerwaltung.Vorstellung;
 
 import org.eclipse.emf.common.notify.Notification;
@@ -236,9 +237,7 @@ public class VorstellungImpl extends MinimalEObjectImpl.Container implements Vor
 	 */
 	@Override
 	public void getFreiePlätze() {
-		// TODO: implement this method
-		// Ensure that you remove @generated or mark it @generated NOT
-		throw new UnsupportedOperationException();
+
 	}
 
 	/**

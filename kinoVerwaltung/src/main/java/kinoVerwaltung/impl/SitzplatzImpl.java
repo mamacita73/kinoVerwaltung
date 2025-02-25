@@ -288,25 +288,22 @@ public class SitzplatzImpl extends MinimalEObjectImpl.Container implements Sitzp
 	/**
 	 * <!-- begin-user-doc -->
 	 * <!-- end-user-doc -->
-	 * @generated
+	 * @generated NOT
 	 */
 	@Override
 	public boolean istVerfügbar() {
-		// TODO: implement this method
-		// Ensure that you remove @generated or mark it @generated NOT
-		throw new UnsupportedOperationException();
+        return this.getSitzstatus() == Sitzstatus.FREI;
 	}
 
 	/**
 	 * <!-- begin-user-doc -->
 	 * <!-- end-user-doc -->
-	 * @generated
+	 * @generated NOT
 	 */
 	@Override
 	public void reservieren() {
-		// TODO: implement this method
-		// Ensure that you remove @generated or mark it @generated NOT
-		throw new UnsupportedOperationException();
+		setSitzstatus(Sitzstatus.RESERVIERT);
+		//Hier kann eine Art Timer implementiert werden, der nach einer gewissen Zeit den Sitzplatz wieder freigibt
 	}
 
 	/**
@@ -316,9 +313,7 @@ public class SitzplatzImpl extends MinimalEObjectImpl.Container implements Sitzp
 	 */
 	@Override
 	public void buchen() {
-		// TODO: implement this method
-		// Ensure that you remove @generated or mark it @generated NOT
-		throw new UnsupportedOperationException();
+		setSitzstatus(Sitzstatus.GEBUCHT);
 	}
 
 	/**

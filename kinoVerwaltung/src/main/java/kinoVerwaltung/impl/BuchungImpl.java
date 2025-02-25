@@ -229,13 +229,14 @@ public class BuchungImpl extends MinimalEObjectImpl.Container implements Buchung
 	/**
 	 * <!-- begin-user-doc -->
 	 * <!-- end-user-doc -->
-	 * @generated
+	 * @generated NOT
 	 */
 	@Override
 	public String getBuchungsdetails() {
-		// TODO: implement this method
-		// Ensure that you remove @generated or mark it @generated NOT
-		throw new UnsupportedOperationException();
+		String details;
+		details = "Buchungsnummer: " + getBuchungsnummer() + "\n Datum: " + getDatum() + "\n Preis: " + getPreis()
+				+ "\n Sitzplätze: ";
+		return details;
 	}
 
 	/**

@@ -244,13 +244,11 @@ public class SaalImpl extends MinimalEObjectImpl.Container implements Saal {
 	/**
 	 * <!-- begin-user-doc -->
 	 * <!-- end-user-doc -->
-	 * @generated
+	 * @generated NOT
 	 */
 	@Override
 	public void freigeben() {
-		// TODO: implement this method
-		// Ensure that you remove @generated or mark it @generated NOT
-		throw new UnsupportedOperationException();
+		setIstFreigegeben(true);
 	}
 
 	/**
@@ -405,5 +403,6 @@ public class SaalImpl extends MinimalEObjectImpl.Container implements Saal {
 		result.append(')');
 		return result.toString();
 	}
+
 
 } //SaalImpl

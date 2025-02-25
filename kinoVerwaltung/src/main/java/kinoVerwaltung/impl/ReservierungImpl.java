@@ -340,13 +340,11 @@ public class ReservierungImpl extends MinimalEObjectImpl.Container implements Re
 	/**
 	 * <!-- begin-user-doc -->
 	 * <!-- end-user-doc -->
-	 * @generated
+	 * @generated NOT
 	 */
 	@Override
 	public void storniereReservierung() {
-		// TODO: implement this method
-		// Ensure that you remove @generated or mark it @generated NOT
-		throw new UnsupportedOperationException();
+		setStatus(Status.STORNIERT);
 	}
 
 	/**
