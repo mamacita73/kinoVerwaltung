@@ -1,0 +1,157 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ecore:EPackage xmi:version="2.0" xmlns:xmi="http://www.omg.org/XMI" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns:ecore="http://www.eclipse.org/emf/2002/Ecore" name="kinoVerwaltung" nsURI="http://www.example.org/kinoVerwaltung"
+    nsPrefix="kinoVerwaltung">
+  <eClassifiers xsi:type="ecore:EClass" name="Kino">
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="name" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="adresse" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="saele" upperBound="-1"
+        eType="#//Saal" containment="true"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="Saal">
+    <eOperations name="freigeben"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="name" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="anzahlReihen" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EInt"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="vorstellungen" upperBound="-1"
+        eType="#//Vorstellung" containment="true">
+      <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
+        <details key="documentation" value="Ein Saal kann mehrere Vorstellungen haben, deshalb ist die Beziehung eine Containment-Referenz."/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="sitzreihen" lowerBound="1"
+        upperBound="-1" eType="#//Sitzreihe" containment="true">
+      <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
+        <details key="documentation" value="Jede Sitzreihe gehört genau zu einem Saal."/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="istFreigegeben" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EBoolean"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="Sitzplatz">
+    <eOperations name="istVerfügbar" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EBoolean">
+      <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
+        <details key="documentation" value="Prüft, ob der Sitz frei ist (Sitzstatus = FREI)."/>
+      </eAnnotations>
+    </eOperations>
+    <eOperations name="reservieren">
+      <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
+        <details key="documentation" value="Setzt Sitzstatus = RESERVIERT"/>
+      </eAnnotations>
+    </eOperations>
+    <eOperations name="buchen">
+      <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
+        <details key="documentation" value=" Setzt Sitzstatus = GEBUCHT."/>
+      </eAnnotations>
+    </eOperations>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="reihe" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EInt"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="nummer" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EInt"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="sitzkategorie" eType="#//Sitzkategorie"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="sitzreihe" lowerBound="1"
+        eType="#//Sitzreihe">
+      <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
+        <details key="documentation" value="Jeder Sitzplatz gehört zu genau einer Sitzreihe"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="sitzstatus" eType="#//Sitzstatus"
+        defaultValueLiteral="FREI"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="Vorstellung">
+    <eOperations name="berechneEinnahmen" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EDouble">
+      <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
+        <details key="documentation" value="Summiert alle Buchung.preis für die Vorstellung."/>
+      </eAnnotations>
+    </eOperations>
+    <eOperations name="getFreiePlätze">
+      <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
+        <details key="documentation" value="Gibt alle freien Sitzplätze dieser Vorstellung zurück."/>
+      </eAnnotations>
+    </eOperations>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="filmTitle" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="startzeit" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EDate"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="dauerMinuten" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EInt"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="buchungen" upperBound="-1"
+        eType="#//Buchung" containment="true">
+      <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
+        <details key="documentation" value="&#x9;Eine Vorstellung kann mehrere Buchungen haben.&#xD;&#xA;"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="Buchung">
+    <eOperations name="berechnePreis" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EDouble">
+      <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
+        <details key="documentation" value="Berechnet den Preis basierend auf der Sitzkategorie"/>
+      </eAnnotations>
+    </eOperations>
+    <eOperations name="getBuchungsdetails" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString">
+      <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
+        <details key="documentation" value="Gibt die Buchungsinformationen formatiert zurück."/>
+      </eAnnotations>
+    </eOperations>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="buchungsnummer" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="datum" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EDate"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="preis" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EDouble"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="sitzplaetze" upperBound="-1"
+        eType="#//Sitzplatz">
+      <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
+        <details key="documentation" value="Eine Buchung kann mehrere Sitzplätze umfassen, aber die Buchung &quot;besitzt&quot; die Sitzplätze nicht direkt."/>
+      </eAnnotations>
+    </eStructuralFeatures>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="Benutzer">
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="benutzername" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="email" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="passwort" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="rolle" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="reservierungen" upperBound="-1"
+        eType="#//Reservierung"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="buchungen" upperBound="-1"
+        eType="#//Buchung"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EEnum" name="Sitzkategorie">
+    <eLiterals name="PARKETT"/>
+    <eLiterals name="LOGE" value="1"/>
+    <eLiterals name="LOGE_SERVICE" value="2"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="Reservierung">
+    <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
+      <details key="documentation" value="Eine Reservierung bezieht sich immer auf genau eine Filmvorstellung."/>
+    </eAnnotations>
+    <eOperations name="wandelReservierungInBuchung" eType="#//Buchung"/>
+    <eOperations name="storniereReservierung">
+      <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
+        <details key="documentation" value="Setzt Sitzstatus = FREI zurück und löscht die Reservierung."/>
+      </eAnnotations>
+    </eOperations>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="reservierungsnummer" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="datum" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EDate"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="status" eType="#//Status"
+        defaultValueLiteral="OFFEN"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="sitzplaetze" upperBound="-1"
+        eType="#//Sitzplatz"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="buchung" eType="#//Buchung">
+      <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
+        <details key="documentation" value="Eine Buchung kann, muss aber nicht aus einer Reservierung stammen"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="vorstellung" lowerBound="1"
+        eType="#//Vorstellung"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EEnum" name="Status">
+    <eLiterals name="OFFEN"/>
+    <eLiterals name="GEBUCHT" value="1"/>
+    <eLiterals name="STORNIERT" value="2"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="Sitzreihe">
+    <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
+      <details key="documentation" value="Eine Sitzreihe ist eine Gruppe von Sitzplatz-Objekten innerhalb eines Saal.&#xD;&#xA;Jede Sitzreihe gehört genau zu einem Saal.&#xD;&#xA;Jede Sitzreihe hat eine feste Anzahl an Plätzen.&#xD;&#xA;Sitzplatz gehört zu genau einer Sitzreihe."/>
+    </eAnnotations>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="nummer" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EInt"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="anzahlPlaetze" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EInt"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="sitzplaetze" lowerBound="1"
+        upperBound="-1" eType="#//Sitzplatz" containment="true"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EEnum" name="Sitzstatus">
+    <eLiterals name="FREI"/>
+    <eLiterals name="RESERVIERT" value="1"/>
+    <eLiterals name="GEBUCHT" value="2"/>
+  </eClassifiers>
+</ecore:EPackage>

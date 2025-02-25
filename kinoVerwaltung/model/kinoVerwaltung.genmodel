@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<genmodel:GenModel xmi:version="2.0" xmlns:xmi="http://www.omg.org/XMI" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns:ecore="http://www.eclipse.org/emf/2002/Ecore" xmlns:genmodel="http://www.eclipse.org/emf/2002/GenModel"
+    modelDirectory="/kinoVerwaltung/src-gen" creationIcons="false"
+    editDirectory="/kinoVerwaltung.edit/src-gen" editorDirectory="/kinoVerwaltung.editor/src-gen"
+    modelPluginID="kinoVerwaltung" modelName="KinoVerwaltung" rootExtendsClass="org.eclipse.emf.ecore.impl.MinimalEObjectImpl$Container"
+    codeFormatting="true" importerID="org.eclipse.emf.importer.ecore" complianceLevel="22.0"
+    copyrightFields="false" operationReflection="true" importOrganizing="true">
+  <foreignModel>kinoVerwaltung.ecore</foreignModel>
+  <testsDirectory xsi:nil="true"/>
+  <genPackages prefix="KinoVerwaltung" disposableProviderFactory="true" ecorePackage="kinoVerwaltung.ecore#/">
+    <genEnums typeSafeEnumCompatible="false" ecoreEnum="kinoVerwaltung.ecore#//Sitzkategorie">
+      <genEnumLiterals ecoreEnumLiteral="kinoVerwaltung.ecore#//Sitzkategorie/PARKETT"/>
+      <genEnumLiterals ecoreEnumLiteral="kinoVerwaltung.ecore#//Sitzkategorie/LOGE"/>
+      <genEnumLiterals ecoreEnumLiteral="kinoVerwaltung.ecore#//Sitzkategorie/LOGE_SERVICE"/>
+    </genEnums>
+    <genEnums typeSafeEnumCompatible="false" ecoreEnum="kinoVerwaltung.ecore#//Status">
+      <genEnumLiterals ecoreEnumLiteral="kinoVerwaltung.ecore#//Status/OFFEN"/>
+      <genEnumLiterals ecoreEnumLiteral="kinoVerwaltung.ecore#//Status/GEBUCHT"/>
+      <genEnumLiterals ecoreEnumLiteral="kinoVerwaltung.ecore#//Status/STORNIERT"/>
+    </genEnums>
+    <genEnums typeSafeEnumCompatible="false" ecoreEnum="kinoVerwaltung.ecore#//Sitzstatus">
+      <genEnumLiterals ecoreEnumLiteral="kinoVerwaltung.ecore#//Sitzstatus/FREI"/>
+      <genEnumLiterals ecoreEnumLiteral="kinoVerwaltung.ecore#//Sitzstatus/RESERVIERT"/>
+      <genEnumLiterals ecoreEnumLiteral="kinoVerwaltung.ecore#//Sitzstatus/GEBUCHT"/>
+    </genEnums>
+    <genClasses ecoreClass="kinoVerwaltung.ecore#//Kino">
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute kinoVerwaltung.ecore#//Kino/name"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute kinoVerwaltung.ecore#//Kino/adresse"/>
+      <genFeatures children="true" createChild="true" propertySortChoices="true" ecoreFeature="ecore:EReference kinoVerwaltung.ecore#//Kino/saele"/>
+    </genClasses>
+    <genClasses ecoreClass="kinoVerwaltung.ecore#//Saal">
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute kinoVerwaltung.ecore#//Saal/name"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute kinoVerwaltung.ecore#//Saal/anzahlReihen"/>
+      <genFeatures children="true" createChild="true" propertySortChoices="true" ecoreFeature="ecore:EReference kinoVerwaltung.ecore#//Saal/vorstellungen"/>
+      <genFeatures children="true" createChild="true" propertySortChoices="true" ecoreFeature="ecore:EReference kinoVerwaltung.ecore#//Saal/sitzreihen"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute kinoVerwaltung.ecore#//Saal/istFreigegeben"/>
+      <genOperations ecoreOperation="kinoVerwaltung.ecore#//Saal/freigeben"/>
+    </genClasses>
+    <genClasses ecoreClass="kinoVerwaltung.ecore#//Sitzplatz">
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute kinoVerwaltung.ecore#//Sitzplatz/reihe"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute kinoVerwaltung.ecore#//Sitzplatz/nummer"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute kinoVerwaltung.ecore#//Sitzplatz/sitzkategorie"/>
+      <genFeatures notify="false" createChild="false" propertySortChoices="true" ecoreFeature="ecore:EReference kinoVerwaltung.ecore#//Sitzplatz/sitzreihe"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute kinoVerwaltung.ecore#//Sitzplatz/sitzstatus"/>
+      <genOperations ecoreOperation="kinoVerwaltung.ecore#//Sitzplatz/istVerfügbar"/>
+      <genOperations ecoreOperation="kinoVerwaltung.ecore#//Sitzplatz/reservieren"/>
+      <genOperations ecoreOperation="kinoVerwaltung.ecore#//Sitzplatz/buchen"/>
+    </genClasses>
+    <genClasses ecoreClass="kinoVerwaltung.ecore#//Vorstellung">
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute kinoVerwaltung.ecore#//Vorstellung/filmTitle"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute kinoVerwaltung.ecore#//Vorstellung/startzeit"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute kinoVerwaltung.ecore#//Vorstellung/dauerMinuten"/>
+      <genFeatures children="true" createChild="true" propertySortChoices="true" ecoreFeature="ecore:EReference kinoVerwaltung.ecore#//Vorstellung/buchungen"/>
+      <genOperations ecoreOperation="kinoVerwaltung.ecore#//Vorstellung/berechneEinnahmen"/>
+      <genOperations ecoreOperation="kinoVerwaltung.ecore#//Vorstellung/getFreiePlätze"/>
+    </genClasses>
+    <genClasses ecoreClass="kinoVerwaltung.ecore#//Buchung">
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute kinoVerwaltung.ecore#//Buchung/buchungsnummer"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute kinoVerwaltung.ecore#//Buchung/datum"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute kinoVerwaltung.ecore#//Buchung/preis"/>
+      <genFeatures notify="false" createChild="false" propertySortChoices="true" ecoreFeature="ecore:EReference kinoVerwaltung.ecore#//Buchung/sitzplaetze"/>
+      <genOperations ecoreOperation="kinoVerwaltung.ecore#//Buchung/berechnePreis"/>
+      <genOperations ecoreOperation="kinoVerwaltung.ecore#//Buchung/getBuchungsdetails"/>
+    </genClasses>
+    <genClasses ecoreClass="kinoVerwaltung.ecore#//Benutzer">
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute kinoVerwaltung.ecore#//Benutzer/benutzername"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute kinoVerwaltung.ecore#//Benutzer/email"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute kinoVerwaltung.ecore#//Benutzer/passwort"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute kinoVerwaltung.ecore#//Benutzer/rolle"/>
+      <genFeatures notify="false" createChild="false" propertySortChoices="true" ecoreFeature="ecore:EReference kinoVerwaltung.ecore#//Benutzer/reservierungen"/>
+      <genFeatures notify="false" createChild="false" propertySortChoices="true" ecoreFeature="ecore:EReference kinoVerwaltung.ecore#//Benutzer/buchungen"/>
+    </genClasses>
+    <genClasses ecoreClass="kinoVerwaltung.ecore#//Reservierung">
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute kinoVerwaltung.ecore#//Reservierung/reservierungsnummer"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute kinoVerwaltung.ecore#//Reservierung/datum"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute kinoVerwaltung.ecore#//Reservierung/status"/>
+      <genFeatures notify="false" createChild="false" propertySortChoices="true" ecoreFeature="ecore:EReference kinoVerwaltung.ecore#//Reservierung/sitzplaetze"/>
+      <genFeatures notify="false" createChild="false" propertySortChoices="true" ecoreFeature="ecore:EReference kinoVerwaltung.ecore#//Reservierung/buchung"/>
+      <genFeatures notify="false" createChild="false" propertySortChoices="true" ecoreFeature="ecore:EReference kinoVerwaltung.ecore#//Reservierung/vorstellung"/>
+      <genOperations documentation=" Erstellt eine Buchung aus einer Reservierung und entfernt diese.&#xD;&#xA; Ändert status = GEBUCHT"
+          ecoreOperation="kinoVerwaltung.ecore#//Reservierung/wandelReservierungInBuchung"/>
+      <genOperations ecoreOperation="kinoVerwaltung.ecore#//Reservierung/storniereReservierung"/>
+    </genClasses>
+    <genClasses ecoreClass="kinoVerwaltung.ecore#//Sitzreihe">
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute kinoVerwaltung.ecore#//Sitzreihe/nummer"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute kinoVerwaltung.ecore#//Sitzreihe/anzahlPlaetze"/>
+      <genFeatures children="true" createChild="true" propertySortChoices="true" ecoreFeature="ecore:EReference kinoVerwaltung.ecore#//Sitzreihe/sitzplaetze"/>
+    </genClasses>
+  </genPackages>
+</genmodel:GenModel>
