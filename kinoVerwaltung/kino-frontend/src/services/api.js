@@ -22,3 +22,21 @@ export const createBenutzer = async (benutzer) => {
         console.error("Fehler beim Erstellen des Benutzers", error);
     }
 };
+
+export async function loginUser(email, password) {
+    try {
+        const response = await fetch("http://localhost:8080/api/login", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ email, password }),
+        });
+
+        const data = await response.json();
+        return data;
+    } catch (error) {
+        console.error("Fehler beim Login:", error);
+        return { success: false, message: "Serverfehler" };
+    }
+}

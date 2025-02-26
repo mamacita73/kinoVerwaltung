@@ -122,14 +122,16 @@ public interface Vorstellung extends EObject {
 	double berechneEinnahmen();
 
 	/**
-	 * <!-- begin-user-doc -->
-	 * <!-- end-user-doc -->
-	 * <!-- begin-model-doc -->
-	 * Gibt alle freien Sitzplätze dieser Vorstellung zurück.
-	 * <!-- end-model-doc -->
-	 * @model kind="operation"
-	 * @generated
-	 */
-	void getFreiePlätze();
+     * <!-- begin-user-doc -->
+     * <!-- end-user-doc -->
+     * <!-- begin-model-doc -->
+     * Gibt alle freien Sitzplätze dieser Vorstellung zurück.
+     * <!-- end-model-doc -->
+     *
+     * @return
+     * @model kind="operation"
+     * @generated
+     */
+	EList<Sitzplatz> getFreiePlätze();
 
 } // Vorstellung

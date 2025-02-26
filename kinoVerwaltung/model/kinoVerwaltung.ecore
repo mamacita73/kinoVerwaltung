@@ -54,17 +54,24 @@
     <eStructuralFeatures xsi:type="ecore:EAttribute" name="sitzstatus" eType="#//Sitzstatus"
         defaultValueLiteral="FREI"/>
   </eClassifiers>
+
   <eClassifiers xsi:type="ecore:EClass" name="Vorstellung">
     <eOperations name="berechneEinnahmen" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EDouble">
       <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
         <details key="documentation" value="Summiert alle Buchung.preis für die Vorstellung."/>
       </eAnnotations>
     </eOperations>
-    <eOperations name="getFreiePlätze">
-      <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
-        <details key="documentation" value="Gibt alle freien Sitzplätze dieser Vorstellung zurück."/>
-      </eAnnotations>
-    </eOperations>
+
+   <!-- Anpassung der Methode getFreiePlätze -->
+       <eOperations name="getFreiePlätze" eType="ecore:EGenericType eClassifier='ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EList'">
+         <eTypeParameters>
+           <eTypeParameter eBounds="#//Sitzplatz"/>
+         </eTypeParameters>
+         <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
+           <details key="documentation" value="Gibt eine Liste aller freien Sitzplätze (Sitzstatus = FREI) in dieser Vorstellung zurück."/>
+         </eAnnotations>
+       </eOperations>
+
     <eStructuralFeatures xsi:type="ecore:EAttribute" name="filmTitle" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
     <eStructuralFeatures xsi:type="ecore:EAttribute" name="startzeit" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EDate"/>
     <eStructuralFeatures xsi:type="ecore:EAttribute" name="dauerMinuten" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EInt"/>
