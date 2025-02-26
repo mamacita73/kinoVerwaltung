@@ -1,18 +1,23 @@
 # Basis-Image für Node.js
 FROM node:18-alpine
 
-# Arbeitsverzeichnis setzen
+# Setze das Arbeitsverzeichnis
 WORKDIR /app
 
-# Abhängigkeiten kopieren
-COPY package.json package-lock.json ./
+# Kopiere package.json und package-lock.json
+COPY package*.json ./
+
+# Installiere Abhängigkeiten
 RUN npm install
 
-# Quellcode kopieren
+# Kopiere den restlichen Code
 COPY . .
 
-# Build ausführen
+# Baue die Anwendung (falls es sich um React/Vite handelt)
 RUN npm run build
 
-# Webserver starten
+# Exponiere den Port für das Frontend
+EXPOSE 3000
+
+# Starte die Anwendung
 CMD ["npm", "start"]

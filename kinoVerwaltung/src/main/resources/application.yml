@@ -1,0 +1,13 @@
+spring:
+  datasource:
+    url: jdbc:postgresql://postgres:5432/kinodb
+    username: admin
+    password: fhdw
+
+  jpa:
+    hibernate:
+      ddl-auto: update  # Alternativ "validate", falls das Schema manuell verwaltet wird
+
+  data:
+    mongodb:
+      uri: mongodb://mongo:27017/kinodb

@@ -1,0 +1,94 @@
+/* Stellt sicher, dass nur der Formularbereich grau ist */
+.saal-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    width: 100%;
+    max-width: 1200px; /* Begrenzung der maximalen Breite */
+    margin: 0 auto; /* Zentriert den Container horizontal */
+    text-align: center;
+}
+
+
+/* Layout für Buttons und Formular */
+.saal-layout {
+    display: flex;
+    justify-content: center;
+    align-items: flex-start; /* Damit die Buttons oben bleiben */
+    gap: 40px; /* Abstand zwischen Buttons und Formular */
+    margin-top: 20px;
+    width: 100%; /* Konsistente Breite */
+}
+
+
+/* Der Bereich mit den Einstellungen und Reihen */
+.saal-form {
+    background-color: #dcdcdc; /* Graue Hintergrundfarbe */
+    padding: 20px;
+    border-radius: 8px;
+    width: 100%;
+    max-width: 800px; /* Begrenzte Breite */
+    }
+
+
+
+/* Einstellungen für Anzahl der Reihen */
+.reihen-einstellung {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 20px;
+    justify-content: center;
+}
+
+/* Container für die Reihen */
+.reihen-liste {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    width: 100%;
+}
+
+/* Einzelne Reihe */
+.reihe {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background-color: darkgray;
+    padding: 10px;
+    border-radius: 5px;
+}
+
+/* Eingabefeld für Sitzanzahl */
+input {
+    padding: 5px;
+    font-size: 16px;
+    width: 60px;
+    text-align: center;
+}
+
+/* Dropdown für Sitzkategorie */
+select {
+    padding: 5px;
+    font-size: 16px;
+}
+
+/* Button-Styling */
+.button {
+    background-color: #3498db;
+    color: #fff;
+    padding: 10px;
+    border: none;
+    cursor: pointer;
+    font-size: 16px;
+    width: 150px;
+    text-align: center;
+    margin-top: 10px;
+}
+
+/* Speichern-Button */
+.speichern {
+    background-color: #2ecc71;
+}

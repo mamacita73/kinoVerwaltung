@@ -46,7 +46,8 @@ function Login() {
                         style={{ display: "block", width: "100%", padding: "8px", margin: "5px 0" }}
                     />
                 </div>
-                <button type="submit" style={{ width: "100%", padding: "10px", marginTop: "10px", backgroundColor: "#007BFF", color: "white", border: "none", borderRadius: "5px", cursor: "pointer" }}>
+                <button type="submit" style={{ width: "100%", padding: "10px", marginTop: "10px", backgroundColor: "#007BFF", color: "white", border: "none", borderRadius: "5px", cursor: "pointer" }}
+                        onClick={handleSubmit}>
                     Anmelden
                 </button>
             </form>

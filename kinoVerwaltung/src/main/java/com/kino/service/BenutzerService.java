@@ -9,7 +9,7 @@ import java.util.Optional;
 
 
 /**
- * für die KOmmunikation mit der DB
+ * für die Kommunikation mit der DB
  */
 
 

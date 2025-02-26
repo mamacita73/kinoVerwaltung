@@ -1,0 +1,82 @@
+/* Stellt sicher, dass die gesamte Seite zentriert ist */
+.container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    text-align: center;
+}
+
+/* Wrapper für die Buttons + Tabelle */
+.layout {
+    display: flex;
+    justify-content: center;
+    align-items: flex-start; /* Damit die Buttons oben anfangen */
+    gap: 40px; /* Abstand zwischen Buttons und Tabelle */
+    margin-top: 20px;
+    width: 100%;
+}
+
+/* Buttons-Container links */
+.button-container {
+    display: flex;
+    flex-direction: column;
+    gap: 50px; /* Abstand zwischen den Buttons */
+    margin-top: 100px;
+}
+
+/* Stil für die Buttons */
+.button {
+    background-color: #3498db;
+    color: #fff;
+    padding: 10px;
+    border: none;
+    cursor: pointer;
+    font-size: 16px;
+    width: 200px;
+    text-align: center;
+}
+
+/* Container für die Saal-Liste */
+.saal-container {
+    background-color: #dcdcdc;
+    padding: 20px;
+    border-radius: 8px;
+    width: 100%;
+    max-width: 800px;
+
+}
+
+/* Bearbeiten-Text */
+.bearbeiten {
+    text-decoration: underline;
+    cursor: pointer;
+    float: right;
+}
+
+/* Tabelle anpassen */
+.table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 10px;
+}
+
+th, td {
+    padding: 25px;
+    border-bottom: 1px solid #ccc;
+    text-align: center;
+
+}
+
+/* Kopfzeile in der Tabelle */
+th {
+    font-weight: bold;
+    background-color: #f0f0f0;
+}
+
+/* Dropdown-Feld */
+.select {
+    width: 100%;
+    padding: 5px;
+}

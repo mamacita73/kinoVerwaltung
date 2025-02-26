@@ -1,0 +1,43 @@
+/* Container für das gesamte Dashboard */
+.dashboard-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    text-align: center;
+}
+
+/* Flexbox für das Formular */
+.dashboard-content {
+    display: flex;
+    align-items: center;
+    gap: 20px; /* Abstand zwischen den Elementen */
+    background-color: #f0f0f0;
+    padding: 20px;
+    border-radius: 8px;
+    margin-top: 20px;
+}
+
+/* Styling für Labels */
+.label {
+    font-size: 18px;
+    font-weight: bold;
+}
+
+/* Dropdown für die Filmauswahl */
+.select {
+    padding: 5px;
+    font-size: 16px;
+}
+
+/* Eingabefeld für Einnahmen */
+.input {
+    padding: 5px;
+    font-size: 16px;
+    width: 120px;
+    text-align: center;
+    background-color: #ddd;
+    border: none;
+    cursor: not-allowed;
+}

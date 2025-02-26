@@ -1,0 +1,32 @@
+
+.dashboard-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    text-align: center;
+}
+
+
+
+/* Container für die Buttons */
+.button-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 20px; /* Abstand zwischen den Buttons */
+    margin-top: 20px;
+}
+
+/* Stil für die Buttons */
+.button {
+    background-color: #3498db;
+    color: #fff;
+    padding: 15px;
+    border: none;
+    cursor: pointer;
+    font-size: 18px;
+    width: 500px;;
+    text-align: center;
+}
