@@ -7,14 +7,12 @@ import java.lang.reflect.InvocationTargetException;
 import java.util.Collection;
 import java.util.Date;
 
-import kinoVerwaltung.Buchung;
-import kinoVerwaltung.KinoVerwaltungPackage;
-import kinoVerwaltung.Sitzplatz;
-import kinoVerwaltung.Vorstellung;
+import kinoVerwaltung.*;
 
 import org.eclipse.emf.common.notify.Notification;
 import org.eclipse.emf.common.notify.NotificationChain;
 
+import org.eclipse.emf.common.util.BasicEList;
 import org.eclipse.emf.common.util.EList;
 
 import org.eclipse.emf.ecore.EClass;
@@ -233,11 +231,23 @@ public class VorstellungImpl extends MinimalEObjectImpl.Container implements Vor
 	/**
 	 * <!-- begin-user-doc -->
 	 * <!-- end-user-doc -->
+	 *
+	 * @return
 	 * @generated
 	 */
 	@Override
-	public void getFreiePlätze() {
+	public EList<Sitzplatz> getFreiePlätze() {
+		EList<Sitzplatz> freieSitzplätze = new BasicEList<>();
 
+		Saal saal = (Saal) eContainer();
+		for (Sitzreihe sitzreihe : saal.getSitzreihen()) {
+			for (Sitzplatz sitz : sitzreihe.getSitzplaetze()) {
+				if (sitz.getSitzstatus() == Sitzstatus.FREI) {
+					freieSitzplätze.add(sitz);
+				}
+			}
+		}
+		return freieSitzplätze;
 	}
 
 	/**
