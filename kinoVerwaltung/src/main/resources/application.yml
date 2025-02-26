@@ -10,4 +10,4 @@ spring:
 
   data:
     mongodb:
-      uri: mongodb://mongo:27017/kinodb
+      uri: mongodb://admin:fhdw@mongo-db:27017/kinodb?authSource=admin
