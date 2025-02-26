@@ -334,9 +334,12 @@ public class ReservierungImpl extends MinimalEObjectImpl.Container implements Re
 	 */
 	@Override
 	public Buchung wandelReservierungInBuchung() {
-		// TODO: implement this method
-		// Ensure that you remove @generated or mark it @generated NOT
-		throw new UnsupportedOperationException();
+		BuchungImpl buchung = new BuchungImpl();
+
+		buchung.setDatum(getDatum());
+		buchung.setBuchungsnummer(getReservierungsnummer() + 1);
+
+		return buchung;
 	}
 
 	/**
