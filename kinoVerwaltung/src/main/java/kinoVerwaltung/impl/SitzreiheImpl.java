@@ -93,7 +93,7 @@ public class SitzreiheImpl extends MinimalEObjectImpl.Container implements Sitzr
 	 * <!-- end-user-doc -->
 	 * @generated
 	 */
-	protected SitzreiheImpl() {
+    public SitzreiheImpl() {
 		super();
 	}
 

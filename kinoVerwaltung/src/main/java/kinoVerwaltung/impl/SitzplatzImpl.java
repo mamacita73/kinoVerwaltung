@@ -133,7 +133,7 @@ public class SitzplatzImpl extends MinimalEObjectImpl.Container implements Sitzp
 	 * <!-- end-user-doc -->
 	 * @generated
 	 */
-	protected SitzplatzImpl() {
+    public SitzplatzImpl() {
 		super();
 	}
 

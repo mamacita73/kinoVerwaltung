@@ -128,7 +128,7 @@ public class SaalImpl extends MinimalEObjectImpl.Container implements Saal {
 	 * <!-- end-user-doc -->
 	 * @generated
 	 */
-	protected SaalImpl() {
+    public SaalImpl() {
 		super();
 	}
 
