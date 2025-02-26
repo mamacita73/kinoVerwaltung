@@ -135,12 +135,14 @@ public class ReservierungImpl extends MinimalEObjectImpl.Container implements Re
 	 */
 	protected Vorstellung vorstellung;
 
+	protected int ticketAnzahl;
+
 	/**
 	 * <!-- begin-user-doc -->
 	 * <!-- end-user-doc -->
 	 * @generated
 	 */
-	protected ReservierungImpl() {
+    public ReservierungImpl() {
 		super();
 	}
 
@@ -500,4 +502,11 @@ public class ReservierungImpl extends MinimalEObjectImpl.Container implements Re
 		return result.toString();
 	}
 
+	public int getTicketAnzahl() {
+		return ticketAnzahl;
+	}
+
+	public void setTicketAnzahl(int ticketAnzahl) {
+		this.ticketAnzahl = ticketAnzahl;
+	}
 } //ReservierungImpl

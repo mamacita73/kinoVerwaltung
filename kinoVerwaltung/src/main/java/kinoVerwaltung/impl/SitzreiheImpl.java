@@ -2,6 +2,7 @@
  */
 package kinoVerwaltung.impl;
 
+import java.util.ArrayList;
 import java.util.Collection;
 
 import kinoVerwaltung.KinoVerwaltungPackage;
@@ -281,5 +282,6 @@ public class SitzreiheImpl extends MinimalEObjectImpl.Container implements Sitzr
 		result.append(')');
 		return result.toString();
 	}
+
 
 } //SitzreiheImpl

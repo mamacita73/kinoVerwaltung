@@ -51,6 +51,8 @@ public class VorstellungImpl extends MinimalEObjectImpl.Container implements Vor
 	 */
 	protected static final String FILM_TITLE_EDEFAULT = null;
 
+	protected EList<Saal> saal;
+
 	/**
 	 * The cached value of the '{@link #getFilmTitle() <em>Film Title</em>}' attribute.
 	 * <!-- begin-user-doc -->
@@ -116,7 +118,7 @@ public class VorstellungImpl extends MinimalEObjectImpl.Container implements Vor
 	 * <!-- end-user-doc -->
 	 * @generated
 	 */
-	protected VorstellungImpl() {
+    public VorstellungImpl() {
 		super();
 	}
 
@@ -248,6 +250,10 @@ public class VorstellungImpl extends MinimalEObjectImpl.Container implements Vor
 			}
 		}
 		return freieSitzplätze;
+	}
+
+	public EList<Saal> getSaal() {
+		return saal;
 	}
 
 	/**

@@ -4,6 +4,7 @@ package kinoVerwaltung.impl;
 
 import java.lang.reflect.InvocationTargetException;
 
+import java.util.ArrayList;
 import java.util.Collection;
 
 import kinoVerwaltung.KinoVerwaltungPackage;
@@ -403,6 +404,7 @@ public class SaalImpl extends MinimalEObjectImpl.Container implements Saal {
 		result.append(')');
 		return result.toString();
 	}
+
 
 
 } //SaalImpl
