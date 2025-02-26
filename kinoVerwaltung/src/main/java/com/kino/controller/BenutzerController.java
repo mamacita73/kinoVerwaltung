@@ -2,9 +2,11 @@ package com.kino.controller;
 
 import com.kino.entity.Benutzer;
 import com.kino.service.BenutzerService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Optional;
 
 /**
  * Benutzer über HTTP aufrufen
@@ -14,14 +16,16 @@ import java.util.List;
 @RestController
 @RequestMapping("/benutzer")
 public class BenutzerController {
-    private final BenutzerService benutzerService;
+    @Autowired
+    private BenutzerService benutzerService;
 
-    public BenutzerController(BenutzerService benutzerService) {
-        this.benutzerService = benutzerService;
+    @GetMapping("/{id}")
+    public Optional<Benutzer> getBenutzerByEmail(@PathVariable String email) {
+        return benutzerService.getBenutzerByEmail(email);
     }
 
-    @GetMapping
-    public List<Benutzer> getAlleBenutzer() {
-        return benutzerService.getAlleBenutzer();
+    @PostMapping
+    public Benutzer createBenutzer(@RequestBody Benutzer benutzer) {
+        return benutzerService.saveBenutzer(benutzer);
     }
 }

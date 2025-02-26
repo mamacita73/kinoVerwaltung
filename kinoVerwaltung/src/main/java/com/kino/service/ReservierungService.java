@@ -13,8 +13,8 @@ public class ReservierungService {
     @Autowired
     private ReservierungRepository reservierungRepository;
 
-    public List<Reservierung> getReservierungenByBenutzer(Long benutzerId) {
-        return reservierungRepository.findByBenutzerId(benutzerId);
+    public List<Reservierung> getReservierungenByBenutzer(String email) {
+        return reservierungRepository.findByBenutzerEmail(email);
     }
 
     public List<Reservierung> getReservierungenByStatus(String status) {
