@@ -9,6 +9,7 @@ services:
       - backend
     networks:
       - kino-net
+    command: npm start
 
   backend:
     build: .

@@ -5,9 +5,10 @@ spring:
     password: fhdw
 
   jpa:
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
     hibernate:
       ddl-auto: update  # Alternativ "validate", falls das Schema manuell verwaltet wird
 
   data:
     mongodb:
-      uri: mongodb://admin:fhdw@mongo-db:27017/kinodb?authSource=admin
+      uri: mongodb://mongo:27017/kinodb

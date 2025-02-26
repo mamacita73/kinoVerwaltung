@@ -14,14 +14,23 @@ export const getBenutzer = async () => {
 };
 
 // Benutzer hinzufügen
-export const createBenutzer = async (benutzer) => {
+export const registerUser = async (benutzername, email, passwort, rolle) => {
     try {
-        const response = await axios.post(`${API_URL}/benutzer`, benutzer);
-        return response.data;
+        const response = await fetch("http://localhost:8080/benutzer/register", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({ benutzername, email, passwort, rolle })
+        });
+
+        return await response.json();
     } catch (error) {
-        console.error("Fehler beim Erstellen des Benutzers", error);
+        console.error("Fehler bei der Registrierung:", error);
+        return { success: false, error: error.message };
     }
 };
+
 
 export async function loginUser(email, password) {
     try {

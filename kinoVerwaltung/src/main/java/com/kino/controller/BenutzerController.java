@@ -5,7 +5,6 @@ import com.kino.service.BenutzerService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
 import java.util.Optional;
 
 /**
@@ -24,8 +23,8 @@ public class BenutzerController {
         return benutzerService.getBenutzerByEmail(email);
     }
 
-    @PostMapping
-    public Benutzer createBenutzer(@RequestBody Benutzer benutzer) {
+    @PostMapping("/register")
+    public Benutzer saveBenutzer(@RequestBody Benutzer benutzer) {
         return benutzerService.saveBenutzer(benutzer);
     }
 }

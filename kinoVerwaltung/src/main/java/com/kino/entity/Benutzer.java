@@ -17,16 +17,16 @@ public class Benutzer {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false, unique = true)
+    @Column(nullable = false, length = 255)
     private String benutzername;
 
-    @Column(nullable = false, unique = true)
+    @Column(nullable = false, unique = true, length = 255)
     private String email;
 
-    @Column(nullable = false)
+    @Column(nullable = false, length = 255)
     private String passwort;
 
-    @Column(nullable = false)
+    @Column(nullable = false, length = 50)
     private String rolle;
 
     @OneToMany(mappedBy = "benutzer", cascade = CascadeType.ALL)
