@@ -109,12 +109,14 @@ public class BuchungImpl extends MinimalEObjectImpl.Container implements Buchung
 	 */
 	protected EList<Sitzplatz> sitzplaetze;
 
+	protected int ticketAnzahl;
+
 	/**
 	 * <!-- begin-user-doc -->
 	 * <!-- end-user-doc -->
 	 * @generated
 	 */
-	protected BuchungImpl() {
+    public BuchungImpl() {
 		super();
 	}
 
@@ -365,6 +367,14 @@ public class BuchungImpl extends MinimalEObjectImpl.Container implements Buchung
 		result.append(preis);
 		result.append(')');
 		return result.toString();
+	}
+
+	public int getTicketAnzahl() {
+		return ticketAnzahl;
+	}
+
+	public void setTicketAnzahl(int ticketAnzahl) {
+		this.ticketAnzahl = ticketAnzahl;
 	}
 
 } //BuchungImpl

@@ -134,4 +134,8 @@ public interface Vorstellung extends EObject {
      */
 	EList<Sitzplatz> getFreiePlätze();
 
+	double getPreis();
+
+	void setPreis(double preis);
+
 } // Vorstellung

@@ -113,6 +113,8 @@ public class VorstellungImpl extends MinimalEObjectImpl.Container implements Vor
 	 */
 	protected EList<Buchung> buchungen;
 
+	protected double preis;
+
 	/**
 	 * <!-- begin-user-doc -->
 	 * <!-- end-user-doc -->
@@ -398,4 +400,11 @@ public class VorstellungImpl extends MinimalEObjectImpl.Container implements Vor
 		return result.toString();
 	}
 
+	public double getPreis() {
+		return preis;
+	}
+
+	public void setPreis(double preis) {
+		this.preis = preis;
+	}
 } //VorstellungImpl
