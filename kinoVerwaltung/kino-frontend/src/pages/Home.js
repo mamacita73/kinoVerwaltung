@@ -5,10 +5,11 @@ function Home() {
     return (
         <div style={{ textAlign: "center", marginTop: "50px" }}>
             <h1>Willkommen zur KinoVerwaltung</h1>
-            <p>Bitte logge dich ein, um fortzufahren.</p>
-            <Login />
-            <Register />
 
+            <div style={{ display: "flex", justifyContent: "center", gap: "100px", marginTop: "20px" }}>
+                <Login />
+                <Register />
+            </div>
         </div>
     );
 }

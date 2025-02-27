@@ -1,41 +1,37 @@
 /* Stellt sicher, dass nur der Formularbereich grau ist */
-.saal-container {
+.saal-container-s {
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
     min-height: 100vh;
     width: 100%;
-    max-width: 1200px; /* Begrenzung der maximalen Breite */
-    margin: 0 auto; /* Zentriert den Container horizontal */
+    max-width: 1200px;
+    margin: 0 auto;
     text-align: center;
 }
 
-
 /* Layout für Buttons und Formular */
-.saal-layout {
+.saal-layout-s {
     display: flex;
     justify-content: center;
-    align-items: flex-start; /* Damit die Buttons oben bleiben */
-    gap: 40px; /* Abstand zwischen Buttons und Formular */
+    align-items: flex-start;
+    gap: 40px;
     margin-top: 20px;
-    width: 100%; /* Konsistente Breite */
+    width: 100%;
 }
 
-
 /* Der Bereich mit den Einstellungen und Reihen */
-.saal-form {
-    background-color: #dcdcdc; /* Graue Hintergrundfarbe */
+.saal-form-s {
+    background-color: #dcdcdc;
     padding: 20px;
     border-radius: 8px;
     width: 100%;
-    max-width: 800px; /* Begrenzte Breite */
-    }
-
-
+    max-width: 800px;
+}
 
 /* Einstellungen für Anzahl der Reihen */
-.reihen-einstellung {
+.reihen-einstellung-s {
     display: flex;
     align-items: center;
     gap: 10px;
@@ -44,51 +40,76 @@
 }
 
 /* Container für die Reihen */
-.reihen-liste {
+.reihen-liste-s {
     display: flex;
     flex-direction: column;
-    gap: 10px;
+    gap: 20px;
     width: 100%;
 }
 
 /* Einzelne Reihe */
-.reihe {
+.reihe-s {
     display: flex;
     align-items: center;
-    gap: 10px;
+    gap: 20px;
     background-color: darkgray;
-    padding: 10px;
-    border-radius: 5px;
+    padding: 5px;
+    border-radius: 8px;
+    height: 70px;
 }
 
 /* Eingabefeld für Sitzanzahl */
-input {
-    padding: 5px;
+.input-s {
+    flex-grow: 0.5; /* Passt die Breite automatisch an */
+    padding: 10px;
     font-size: 16px;
-    width: 60px;
+    height: 20%;
+    width: 10%;
     text-align: center;
+    border-radius: 5px;
+    border: 1px solid #aaa;
 }
 
 /* Dropdown für Sitzkategorie */
-select {
+.select-s {
+    flex-grow: 1; /* Passt sich ebenfalls flexibel an */
     padding: 5px;
+    height: 100%;
+    text-align: center;
+    border-radius: 5px;
+    border: 1px solid #aaa;
     font-size: 16px;
 }
 
 /* Button-Styling */
-.button {
+.button-s {
     background-color: #3498db;
     color: #fff;
     padding: 10px;
     border: none;
     cursor: pointer;
     font-size: 16px;
-    width: 150px;
+    width: 250px;
     text-align: center;
     margin-top: 10px;
 }
 
-/* Speichern-Button */
-.speichern {
-    background-color: #2ecc71;
+/* Responsive Anpassungen */
+@media (max-width: 768px) {
+    .saal-layout-s {
+        flex-direction: column;
+        gap: 20px;
+    }
+
+    .reihe-s {
+        flex-direction: column;
+        align-items: stretch;
+        height: auto;
+    }
+
+    .input-s,
+    .select-s {
+        width: 100%;
+        max-width: 100%;
+    }
 }

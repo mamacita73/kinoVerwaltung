@@ -1,11 +1,11 @@
-/*import React, { useState } from "react";
+import React, { useState } from "react";
 import "../styles/TicketReservierung.css"; // Import der CSS-Datei
 
 const TicketReservierung = () => {
     const [selectedFilm, setSelectedFilm] = useState("");
     const [selectedKategorie, setSelectedKategorie] = useState("");
     const [anzahl, setAnzahl] = useState(1);
-    const [freiePlaetze, setFreiePlaetze] = useState(16);
+    const [freiePlaetze] = useState(16);
     const [reservierungsnummer, setReservierungsnummer] = useState(27693);
 
     const filme = ["Film A", "Film B", "Film C"];
@@ -17,10 +17,10 @@ const TicketReservierung = () => {
     };
 
     return (
-        <div className="reservierung-container">
+        <div className="reservierung-container-tr">
             <h2>Tickets reservieren</h2>
 
-            <div className="form-grid">
+            <div className="form-grid-tr">
                 <label>Film:</label>
                 <select value={selectedFilm} onChange={(e) => setSelectedFilm(e.target.value)}>
                     <option value="">Filme</option>
@@ -50,11 +50,11 @@ const TicketReservierung = () => {
                 <input type="number" value={anzahl} min="1" max={freiePlaetze} onChange={(e) => setAnzahl(parseInt(e.target.value) || 1)} />
             </div>
 
-            <div className="reservierung-footer">
+            <div className="reservierung-footer-tr">
                 <label>Reservierungsnummer:</label>
                 <input type="text" value={reservierungsnummer} readOnly />
 
-                <button className="button" onClick={handleReservierung}>Reservieren</button>
+                <button className="button-tr" onClick={handleReservierung}>Reservieren</button>
             </div>
         </div>
     );
@@ -62,4 +62,3 @@ const TicketReservierung = () => {
 
 export default TicketReservierung;
 
- */

@@ -1,5 +1,5 @@
 
-.dashboard-container {
+.dashboard-container-kd {
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -11,7 +11,7 @@
 
 
 /* Container für die Buttons */
-.button-container {
+.button-container-kd {
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -20,13 +20,13 @@
 }
 
 /* Stil für die Buttons */
-.button {
+.button-kd {
     background-color: #3498db;
     color: #fff;
     padding: 15px;
     border: none;
     cursor: pointer;
     font-size: 18px;
-    width: 500px;;
+    width:250px;;
     text-align: center;
 }
