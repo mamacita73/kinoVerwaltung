@@ -28,6 +28,11 @@ public class RabbitMQReceiver {
         this.objectMapper = objectMapper;
     }
 
+    /**
+     * Diese Methode wird aufgerufen, wenn eine Nachricht auf der "loginQueue" ankommt.
+     * @param message
+     * @return
+     */
     @RabbitListener(queues = "loginQueue")
     public String receiveLoginRequest(String message) {
         Map<String, String> response = new HashMap<>();
