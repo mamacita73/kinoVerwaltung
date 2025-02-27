@@ -33,27 +33,29 @@ const SaalAnlegen = () => {
     };
 
     return (
-        <div className="saal-container">
+        <div className="saal-container-s">
             <h2>Saal anlegen</h2>
-            <div className="saal-layout">
-                <div className="saal-form">
-                <div className="reihen-einstellung">
+            <div className="saal-layout-s">
+                <div className="saal-form-s">
+                <div className="reihen-einstellung-s">
                     <label>Anzahl an Reihen:</label>
                     <input
+                        className="input-s"
                         type="number"
                         value={anzahlReihen}
                         onChange={(e) => setAnzahlReihen(Math.min(26, Math.max(1, parseInt(e.target.value, 10) || 1)))}
                         min="1"
                         max="26"
                     />
-                    <button className="button" onClick={handleReihenUpdate}>Übernehmen</button>
+                    <button className="button-s" onClick={handleReihenUpdate}>Übernehmen</button>
                 </div>
 
-                <div className="reihen-liste">
+                <div className="reihen-liste-s">
                     {reihen.map((reihe, index) => (
-                        <div key={index} className="reihe">
+                        <div key={index} className="reihe-s">
                             <span>{reihe.name}</span>
                             <input
+                                className="input-s"
                                 type="number"
                                 value={reihe.sitze}
                                 onChange={(e) => handleSitzeChange(index, e.target.value)}
@@ -74,7 +76,7 @@ const SaalAnlegen = () => {
                     ))}
                 </div>
 
-                <button className="button speichern">Speichern</button>
+                <button className="button-s">Speichern</button>
                 </div>
             </div>
         </div>

@@ -7,6 +7,9 @@ import FilmDashboard from "./pages/FilmDashboard";
 import SaalAnlegen from "./pages/SaalAnlegen";
 import KundenDashboard from "./pages/KundenDashboard";
 import TicketReservierung from "./pages/TicketReservierung";
+import ReservierungDashboard from "./pages/ReservierungDashboard";
+import ReservierungZuBuchung from "./pages/ReservierungZuBuchung";
+import Buchung from "./pages/Buchung";
 
 function App() {
   return (
@@ -20,6 +23,10 @@ function App() {
             <Route path="/saalanlegen" element={<SaalAnlegen />} />
             <Route path="/kundendashboard" element={<KundenDashboard />} />
             <Route path="/ticketreservierung" element={<TicketReservierung />} />
+            <Route path="/reservierungdashboard" element={<ReservierungDashboard />} />
+            <Route path="/reservierungzubuchung" element={<ReservierungZuBuchung />} />
+            <Route path="/buchung" element={<Buchung />} />
+
         </Routes>
       </Router>
   );

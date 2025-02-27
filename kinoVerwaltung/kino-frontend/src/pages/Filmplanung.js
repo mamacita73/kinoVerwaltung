@@ -16,19 +16,18 @@ const Filmplanung = () => {
     };
 
     return (
-        <div className="container">
+        <div className="container-p">
             <h2>Filmplanung</h2>
 
             {/* Wrapper für Buttons + Tabelle */}
-            <div className="layout">
+            <div className="layout-p">
                 {/* Buttons links */}
-                <div className="button-container">
-                    <button className="button">Saal anlegen</button>
-                    <button className="button">Film Dashboard</button>
-                </div>
+
+
+
 
                 {/* Tabelle rechts */}
-                <div className="saal-container">
+                <div className="saal-container-p">
                     <h3>Vorhandene Säle: <span className="bearbeiten">Bearbeiten</span></h3>
                     <table className="table">
                         <thead>
@@ -63,6 +62,8 @@ const Filmplanung = () => {
                         ))}
                         </tbody>
                     </table>
+                    <button className="button-p">Saal anlegen</button>
+                    <button className="button-p">Film Dashboard</button>
                 </div>
             </div>
         </div>

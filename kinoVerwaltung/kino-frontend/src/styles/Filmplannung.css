@@ -1,51 +1,43 @@
-/* Stellt sicher, dass die gesamte Seite zentriert ist */
-.container {
+/* Stellt sicher, dass die gesamte Seite zentriert ist*/
+.container-p {
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    height: 70%;
+    min-height: 100vh;
     width: 100%;
-
-    margin: 0 auto; /* Zentriert den Container horizontal */
+    max-width: 1200px;
+    margin: 0 auto;
     text-align: center;
 }
 
 /* Wrapper für die Buttons + Tabelle */
-.layout {
+.layout-p {
     display: flex;
     justify-content: center;
-    gap: 40px; /* Abstand zwischen Buttons und Tabelle */
+    align-items: flex-start;
+    gap: 40px;
     margin-top: 20px;
     width: 100%;
-    justify-content: center;
-    text-align: center;
 }
 
-/* Buttons-Container links */
-.button-container {
-    display: flex;
-    flex-direction: column;
-    gap: 50px; /* Abstand zwischen den Buttons */
-    justify-content: center;
-    margin-left: 40px;
-}
 
 /* Stil für die Buttons */
-.button {
+.button-p {
     background-color: #3498db;
     color: #fff;
     padding: 10px;
     border: none;
     cursor: pointer;
     font-size: 16px;
-    width: 150px;
+    width: 250px;
     text-align: center;
-    margin-top: 10px;
+    margin: 20px;
+
 }
 
 /* Container für die Saal-Liste */
-.saal-container {
+.saal-container-p {
     background-color: #dcdcdc;
     padding: 20px;
     border-radius: 8px;
