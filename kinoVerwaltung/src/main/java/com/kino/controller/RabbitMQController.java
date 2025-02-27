@@ -4,6 +4,9 @@ import org.springframework.web.bind.annotation.*;
 
 import com.kino.messaging.RabbitMQSender;
 
+import java.io.IOException;
+import java.util.concurrent.TimeoutException;
+
 
 /**
  * REST-Schnittstelle, um Nachrichten an RabbitMQ zu senden
@@ -19,8 +22,8 @@ public class RabbitMQController {
     }
 
     @PostMapping("/send")
-    public String sendMessage(@RequestParam String message) {
-        sender.sendMessage("kinoQueue", message);
+    public String sendMessage(@RequestParam String message) throws IOException, TimeoutException {
+        sender.sendLoginRequest(message);
         return "Gesendet: " + message;
     }
 }

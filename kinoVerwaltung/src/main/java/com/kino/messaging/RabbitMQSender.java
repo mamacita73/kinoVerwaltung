@@ -2,11 +2,17 @@ package com.kino.messaging;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.rabbitmq.client.AMQP;
+import com.rabbitmq.client.Channel;
+import com.rabbitmq.client.Connection;
+import com.rabbitmq.client.ConnectionFactory;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.stereotype.Service;
 
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.TimeoutException;
 
 /**
  * Klasse zum Senden von Nachrichten über RabbitMQ mit JSON-Serialisierung.
@@ -16,9 +22,12 @@ public class RabbitMQSender {
     private final RabbitTemplate rabbitTemplate;
     private final ObjectMapper objectMapper;
 
+
+
     public RabbitMQSender(RabbitTemplate rabbitTemplate, ObjectMapper objectMapper) {
         this.rabbitTemplate = rabbitTemplate;
         this.objectMapper = objectMapper;
+
     }
 
     /**
@@ -27,23 +36,24 @@ public class RabbitMQSender {
      * @param email Benutzer-E-Mail
      * @return Login-Ergebnis (Map mit Erfolg & Rolle)
      */
-    public Map<String, String> sendLoginRequest(String email) {
-        try {
-            // Erstelle das JSON-Objekt für den Login (ohne Passwort)
-            Map<String, String> loginData = new HashMap<>();
-            loginData.put("email", email);
+    public static void sendLoginRequest(String email) throws IOException, TimeoutException {
 
-            // In JSON umwandeln
-            String jsonRequest = objectMapper.writeValueAsString(loginData);
+        ConnectionFactory factory = new ConnectionFactory();
+        factory.setHost("localhost");
 
-            // Anfrage senden und Antwort erhalten
-            String jsonResponse = (String) rabbitTemplate.convertSendAndReceive("loginQueue", jsonRequest);
+        try (Connection connection = factory.newConnection();
+             Channel channel = connection.createChannel()) {
 
-            // JSON in Map umwandeln
-            return objectMapper.readValue(jsonResponse, Map.class);
-        } catch (JsonProcessingException e) {
-            e.printStackTrace();
-            return null;
+
+            channel.queueDeclare("queue", false, false, false, null);
+            channel.basicPublish("", "queue", null, email.getBytes());
         }
     }
+
+
+    public static void main(String[] argv) throws Exception {
+        String email = "nadja@fhdw.de";
+        sendLoginRequest(email);
+    }
+
 }

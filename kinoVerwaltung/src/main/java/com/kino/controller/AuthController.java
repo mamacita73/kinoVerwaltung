@@ -3,7 +3,9 @@ package com.kino.controller;
 import com.kino.messaging.RabbitMQSender;
 import org.springframework.web.bind.annotation.*;
 
+import java.io.IOException;
 import java.util.Map;
+import java.util.concurrent.TimeoutException;
 
 /**
  * Authentifizierungs-Controller für die Benutzeranmeldung.
@@ -25,7 +27,7 @@ public class AuthController {
      * @return Antwort mit Erfolg & Benutzerrolle.
      */
     @PostMapping("/login")
-    public Map<String, String> login(@RequestBody Map<String, String> loginRequest) {
-        return rabbitMQSender.sendLoginRequest(loginRequest.get("email"));
+    public void login(@RequestBody Map<String, String> loginRequest) throws IOException, TimeoutException {
+        rabbitMQSender.sendLoginRequest(loginRequest.get("email"));
     }
 }
