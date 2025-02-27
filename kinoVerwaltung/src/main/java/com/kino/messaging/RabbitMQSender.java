@@ -38,15 +38,26 @@ public class RabbitMQSender {
      */
     public static void sendLoginRequest(String email) throws IOException, TimeoutException {
 
+        String queueName = "loginQueue";
+        //RabbitMQ Connection aufbauen
         ConnectionFactory factory = new ConnectionFactory();
         factory.setHost("localhost");
 
         try (Connection connection = factory.newConnection();
              Channel channel = connection.createChannel()) {
 
+            //Queue deklarieren
+            channel.queueDeclare(queueName, false, false, false, null);
 
-            channel.queueDeclare("queue", false, false, false, null);
-            channel.basicPublish("", "queue", null, email.getBytes());
+            //JSON-Objekt mit E-Mail erzeugen
+            Map<String, String> loginData = new HashMap<>();
+            loginData.put("email", email);
+
+            ObjectMapper objectMapper = new ObjectMapper();
+            String message = objectMapper.writeValueAsString(loginData);
+
+            //Nachricht senden
+            channel.basicPublish("", queueName, null, message.getBytes());
         }
     }
 

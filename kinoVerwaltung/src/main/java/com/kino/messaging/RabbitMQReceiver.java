@@ -21,28 +21,41 @@ public class RabbitMQReceiver {
     private final DatabaseCommand databaseCommand;
     private final ObjectMapper objectMapper;
 
+
+
     public RabbitMQReceiver(DatabaseCommand databaseCommand, ObjectMapper objectMapper) {
         this.databaseCommand = databaseCommand;
         this.objectMapper = objectMapper;
     }
 
     @RabbitListener(queues = "loginQueue")
-    public String receiveLoginRequest(String message) throws IOException, TimeoutException {
+    public String receiveLoginRequest(String message) {
+        Map<String, String> response = new HashMap<>();
+
         try {
+            //E-Mail aus dem JSON-Objekt extrahieren
             Map<String, String> loginData = objectMapper.readValue(message, Map.class);
             String email = loginData.get("email");
 
+            //Benutzer in der Datenbank suchen
             Optional<Benutzer> userOpt = databaseCommand.findUserByEmail(email);
 
-            Map<String, String> response = new HashMap<>();
-
+            //Rolle ermitteln und Antwort zusammenstellen
             if (userOpt.isPresent()) {
+                Benutzer user = userOpt.get();
                 response.put("success", "true");
-                response.put("rolle", userOpt.get().getRolle().name());
+                response.put("rolle", user.getRolle().name());
             } else {
                 response.put("success", "false");
             }
 
+        } catch (Exception e) {
+            e.printStackTrace();
+            return "{\"success\":\"false\"}";
+        }
+
+        //JSON zurückgeben
+        try {
             return objectMapper.writeValueAsString(response);
         } catch (Exception e) {
             e.printStackTrace();
