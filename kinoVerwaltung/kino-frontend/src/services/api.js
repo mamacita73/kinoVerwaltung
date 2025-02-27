@@ -32,20 +32,21 @@ export const registerUser = async (benutzername, email, passwort, rolle) => {
 };
 
 
-export async function loginUser(email, password) {
+export const loginUser = async (email, password) => {
     try {
-        const response = await fetch("http://localhost:8080/api/login", {
+        const response = await fetch("http://localhost:8080/api/auth/login", {
             method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-            },
-            body: JSON.stringify({ email, password }),
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ email, passwort: password }) // Nur E-Mail & Passwort senden
         });
 
-        const data = await response.json();
-        return data;
+        if (!response.ok) {
+            throw new Error("Falsche E-Mail oder Passwort");
+        }
+
+        return await response.text(); // Server gibt "KUNDE" oder "ADMIN" zurück
     } catch (error) {
-        console.error("Fehler beim Login:", error);
-        return { success: false, message: "Serverfehler" };
+        return { error: error.message };
     }
-}
+};
+

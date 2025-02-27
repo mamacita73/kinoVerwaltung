@@ -5,7 +5,7 @@ function Register() {
     const [benutzername, setBenutzername] = useState("");
     const [email, setEmail] = useState("");
     const [passwort, setPasswort] = useState("");
-    const [rolle, setRolle] = useState("USER"); // Standardrolle
+    const [rolle, setRolle] = useState("KUNDE"); // Standardrolle
     const [message, setMessage] = useState("");
     const [error, setError] = useState("");
 
@@ -19,7 +19,7 @@ function Register() {
         }
 
         if (passwort.length < 3) {
-            setError("Das Passwort muss mindestens 6 Zeichen lang sein.");
+            setError("Das Passwort muss mindestens 3 Zeichen lang sein.");
             return;
         }
 
@@ -77,7 +77,7 @@ function Register() {
                         onChange={(e) => setRolle(e.target.value)}
                         style={{ display: "block", width: "100%", padding: "8px", margin: "5px 0" }}
                     >
-                        <option value="USER">USER</option>
+                        <option value="KUNDE">KUNDE</option>
                         <option value="ADMIN">ADMIN</option>
                     </select>
                 </div>

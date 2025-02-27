@@ -26,8 +26,8 @@ public class Benutzer {
     @Column(nullable = false, length = 255)
     private String passwort;
 
-    @Column(nullable = false, length = 50)
-    private String rolle;
+    @Enumerated(EnumType.STRING)
+    private Rolle rolle;
 
     @OneToMany(mappedBy = "benutzer", cascade = CascadeType.ALL)
     private List<Buchung> buchungen;

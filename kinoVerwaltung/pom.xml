@@ -66,6 +66,11 @@
           <artifactId>spring-boot-starter-amqp</artifactId>
       </dependency>
 
+      <dependency>
+          <groupId>com.fasterxml.jackson.core</groupId>
+          <artifactId>jackson-databind</artifactId>
+      </dependency>
+
       <!-- Lombok für weniger Boilerplate Code -->
       <dependency>
           <groupId>org.projectlombok</groupId>
