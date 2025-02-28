@@ -2,7 +2,6 @@ import React, { useState } from "react";
 import "../styles/Buchung.css"; // Import der allgemeinen CSS-Datei
 
 const Reservierung = () => {
-    const [reservierungsnummer] = useState(27698);
     const [buchungsnummer] = useState(54647);
     const [summe] = useState("50€");
     const [selectedZahlung, setSelectedZahlweise] = useState("");

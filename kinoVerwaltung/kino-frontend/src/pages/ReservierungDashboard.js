@@ -3,7 +3,7 @@ import "../styles/ReservierungDashboard.css"; // Import der allgemeinen CSS-Date
 
 const Reservierung = () => {
     const [reservierungsnummer] = useState(27698);
-    const [anzahl, setAnzahl] = useState(5);
+    const [anzahl] = useState(5);
     const [film] = useState("Herr der Stieben");
     const [start] = useState("16:00");
     const [ende] = useState("17:30");

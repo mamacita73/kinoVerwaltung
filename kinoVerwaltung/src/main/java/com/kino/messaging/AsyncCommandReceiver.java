@@ -36,4 +36,11 @@ public class AsyncCommandReceiver {
             e.printStackTrace();
         }
     }
+
+
+    // logging für debugging
+    @RabbitListener(queues = "asyncCommandQueue")
+    public void receiveAsyncCommand(String message) {
+        System.out.println("Nachricht von asyncCommandQueue empfangen: " + message);
+    }
 }

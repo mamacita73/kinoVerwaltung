@@ -37,10 +37,13 @@ public class RabbitMQReceiver {
     public String receiveLoginRequest(String message) {
         Map<String, String> response = new HashMap<>();
 
+
         try {
             //E-Mail aus dem JSON-Objekt extrahieren
             Map<String, String> loginData = objectMapper.readValue(message, Map.class);
             String email = loginData.get("email");
+            System.out.println("Empfangene E-Mail2: " + email);
+
 
             //Benutzer in der Datenbank suchen
             Optional<Benutzer> userOpt = databaseCommand.findUserByEmail(email);
@@ -50,6 +53,8 @@ public class RabbitMQReceiver {
                 Benutzer user = userOpt.get();
                 response.put("success", "true");
                 response.put("rolle", user.getRolle().name());
+                System.out.println("Empfangene E-Mail3: " + email);
+
             } else {
                 response.put("success", "false");
             }
@@ -68,18 +73,6 @@ public class RabbitMQReceiver {
         }
     }
 
-    public static void main(String[] argv) throws Exception {
-        ConnectionFactory factory = new ConnectionFactory();
-        factory.setHost("localhost");
-        Connection connection = factory.newConnection();
-        Channel channel = connection.createChannel();
-
-        channel.queueDeclare("queue", false, false, false, null);
-
-        DeliverCallback deliverCallback = (consumerTag, delivery) -> {
-            String message = new String(delivery.getBody(), "UTF-8");
-        };
-        channel.basicConsume("queue", true, deliverCallback, consumerTag -> { });
     }
 
-}
+

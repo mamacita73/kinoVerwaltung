@@ -40,6 +40,8 @@ public class AuthController {
         try {
             //Die E-Mail wird aus dem RequestBody extrahiert
             String email = loginRequest.get("email");
+            System.out.println("Empfangene E-Mail4: " + email);
+
 
             //JSON-Objekt bauen
             Map<String, String> data = new HashMap<>();

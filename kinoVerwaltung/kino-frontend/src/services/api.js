@@ -32,21 +32,5 @@ export const registerUser = async (benutzername, email, passwort, rolle) => {
 };
 
 
-export const loginUser = async (email, password) => {
-    try {
-        const response = await fetch("http://localhost:8080/api/auth/login", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ email, passwort: password }) // Nur E-Mail & Passwort senden
-        });
 
-        if (!response.ok) {
-            throw new Error("Falsche E-Mail oder Passwort");
-        }
-
-        return await response.text(); // Server gibt "KUNDE" oder "ADMIN" zurück
-    } catch (error) {
-        return { error: error.message };
-    }
-};
 

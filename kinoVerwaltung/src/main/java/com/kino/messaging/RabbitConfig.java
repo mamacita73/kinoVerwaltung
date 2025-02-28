@@ -12,8 +12,10 @@ public class RabbitConfig {
 
     @Bean
     public ConnectionFactory connectionFactory() {
-        // Hier ggf. Host, Port, Credentials etc. konfigurieren
-        CachingConnectionFactory connectionFactory = new CachingConnectionFactory("localhost");
+        // Hautomatisch, wenn backend staret
+        CachingConnectionFactory connectionFactory = new CachingConnectionFactory("rabbitmq");
+        connectionFactory.setUsername("guest");
+        connectionFactory.setPassword("guest");
         return connectionFactory;
     }
 
@@ -28,5 +30,12 @@ public class RabbitConfig {
         // Deklariert eine Queue mit dem Namen "loginQueue"
         // false = non-durable, je nach Bedarf anpassen
         return new Queue("loginQueue", false);
+    }
+
+
+    @Bean
+    public Queue asyncCommandQueue() {
+        //  wird vom Backend verwendet und muss existieren
+        return new Queue("asyncCommandQueue", true);
     }
 }

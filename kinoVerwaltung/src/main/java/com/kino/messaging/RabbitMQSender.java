@@ -52,6 +52,8 @@ public class RabbitMQSender {
             //JSON-Objekt mit E-Mail erzeugen
             Map<String, String> loginData = new HashMap<>();
             loginData.put("email", email);
+            System.out.println("Empfangene E-Mail5: " + email);
+
 
             ObjectMapper objectMapper = new ObjectMapper();
             String message = objectMapper.writeValueAsString(loginData);
@@ -61,10 +63,5 @@ public class RabbitMQSender {
         }
     }
 
-
-    public static void main(String[] argv) throws Exception {
-        String email = "nadja@fhdw.de";
-        sendLoginRequest(email);
-    }
 
 }
