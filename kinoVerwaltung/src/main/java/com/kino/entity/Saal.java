@@ -2,6 +2,7 @@ package com.kino.entity;
 import jakarta.persistence.*;
 import lombok.*;
 import java.util.List;
+
 // Saal-Entity: Repräsentiert einen Kinosaal
 @Entity
 @Table(name = "saal")
@@ -29,5 +30,8 @@ public class Saal {
 
     @OneToMany(mappedBy = "saal", cascade = CascadeType.ALL)
     private List<Vorstellung> vorstellungen;
+
+    @OneToMany(mappedBy = "saal", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Sitzreihe> sitzreihen;
 }
 
