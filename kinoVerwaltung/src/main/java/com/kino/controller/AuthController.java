@@ -111,7 +111,7 @@ public class AuthController {
             payload.put("benutzername", benutzername);
             payload.put("email", email);
             payload.put("passwort", passwort);
-            payload.put("role", rolle);
+            payload.put("rolle", rolle);
 
             // Nachricht an RabbitMQ senden
             AsyncCommandSender.sendCommand("BENUTZER_WRITE", payload);
