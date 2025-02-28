@@ -1,5 +1,4 @@
 import { useState } from "react";
-import { registerUser } from "../services/api";
 
 function Register() {
     const [benutzername, setBenutzername] = useState("");
@@ -8,8 +7,6 @@ function Register() {
     const [rolle, setRolle] = useState("KUNDE"); // Standardrolle
     const [message, setMessage] = useState("");
     const [error, setError] = useState("");
-
-
     const handleSubmit = async (e) => {
         e.preventDefault();
         setError("");
