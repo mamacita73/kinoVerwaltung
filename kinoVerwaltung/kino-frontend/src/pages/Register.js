@@ -11,9 +11,11 @@ function Register() {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
+        setError("");
+        setMessage("");
 
         // Einfache Validierung
-        if (benutzername.length === 0 || email.length === 0 || passwort.length === 0) {
+        if (!benutzername.trim() || !email.trim() || !passwort.trim()) {
             setError("Alle Felder müssen ausgefüllt werden.");
             return;
         }
@@ -23,15 +25,30 @@ function Register() {
             return;
         }
 
-        const result = await registerUser(benutzername, email, passwort, rolle);
-
-        if (result.id) {
-            setMessage("Registrierung erfolgreich!");
-            setError("");
-        } else {
-            setError("Fehler bei der Registrierung: " + (result.error || "Unbekannt"));
-            setMessage("");
+        // Sicherstellen, dass Rolle nicht leer ist
+        if (!rolle) {
+            setRolle("KUNDE");
         }
+
+
+        try {
+            const result = await registerUser(benutzername, email, passwort, rolle);
+
+            if (result.success) {
+                setMessage("Registrierung erfolgreich!");
+                setError("");
+                setBenutzername("");
+                setEmail("");
+                setPasswort("");
+                setRolle("KUNDE"); // Standard-Rolle nach Registrierung zurücksetzen
+            } else {
+                setError("Fehler bei der Registrierung: " + (result.message || "Unbekannt"));
+                setMessage("");
+            }
+        } catch (err) {
+            setError("Netzwerkfehler oder Server nicht erreichbar.");
+        }
+
     };
 
     return (

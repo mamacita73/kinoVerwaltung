@@ -2,6 +2,7 @@ package com.kino.messaging;
 
 import com.kino.entity.Benutzer;
 import com.kino.repository.BenutzerRepository;
+import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Service;
 
 import java.util.Optional;
@@ -22,5 +23,17 @@ public class DatabaseCommand {
      */
     public Optional<Benutzer> findUserByEmail(String email) {
         return benutzerRepository.findByEmail(email);
+    }
+
+    /**
+     * Speichert einen neuen Benutzer in der Datenbank.
+     * @param benutzer Das Benutzerobjekt, das gespeichert werden soll.
+     * @return Der gespeicherte Benutzer.
+     */
+    @Transactional
+    public Benutzer saveUser(Benutzer benutzer) {
+        Benutzer gespeicherterBenutzer = benutzerRepository.save(benutzer);
+        System.out.println("Benutzer gespeichert: " + gespeicherterBenutzer.getEmail());
+        return gespeicherterBenutzer;
     }
 }

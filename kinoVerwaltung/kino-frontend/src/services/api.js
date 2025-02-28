@@ -16,7 +16,7 @@ export const getBenutzer = async () => {
 // Benutzer hinzufügen
 export const registerUser = async (benutzername, email, passwort, rolle) => {
     try {
-        const response = await fetch("http://localhost:8080/benutzer/register", {
+        const response = await fetch("http://localhost:8080/api/auth/register", {
             method: "POST",
             headers: {
                 "Content-Type": "application/json"

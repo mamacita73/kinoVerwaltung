@@ -28,9 +28,9 @@ function Login() {
                 setMessage("Login erfolgreich!");
 
                 if (result.rolle === "ADMIN") {
-                    navigate("/filmplanung");
+                    navigate("/Filmplanung");
                 } else {
-                    navigate("/kundedashboard");
+                    navigate("/KundenDashboard");
                 }
             } else {
                 setError("E-Mail nicht gefunden!");

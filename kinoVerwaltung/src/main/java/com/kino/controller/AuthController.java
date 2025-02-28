@@ -61,4 +61,40 @@ public class AuthController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Collections.singletonMap("success", "false"));
         }
     }
+
+    @PostMapping("/register")
+    public ResponseEntity<Map<String, String>> register(@RequestBody Map<String, String> registerRequest) {
+        try {
+            String benutzername = registerRequest.get("benutzername");
+            String email = registerRequest.get("email");
+            String password = registerRequest.get("password");
+            String role = registerRequest.get("role");
+
+            System.out.println("Registrierungs-Anfrage erhalten: " + email);
+
+            // JSON-Objekt für RabbitMQ erstellen
+            Map<String, String> data = new HashMap<>();
+            data.put("benutzername", benutzername);
+            data.put("email", email);
+            data.put("password", password);
+            data.put("role", role);
+
+            String message = objectMapper.writeValueAsString(data);
+
+            // Nachricht an RabbitMQ senden & Antwort erhalten
+            String responseString = (String) rabbitTemplate.convertSendAndReceive("", "registerQueue", message);
+
+            // Antwort verarbeiten
+            Map<String, String> responseMap = objectMapper.readValue(responseString, new TypeReference<Map<String, String>>() {});
+
+            return ResponseEntity.ok(responseMap);
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Collections.singletonMap("success", "false"));
+        }
+    }
+
+
+
 }

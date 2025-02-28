@@ -1,6 +1,7 @@
 package com.kino.messaging;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.kino.entity.Rolle;
 import com.kino.messaging.DatabaseCommand;
 import com.kino.entity.Benutzer;
 import com.rabbitmq.client.Connection;
@@ -73,6 +74,57 @@ public class RabbitMQReceiver {
         }
     }
 
+
+    @RabbitListener(queues = "registerQueue")
+    public String receiveRegisterRequest(String message) {
+        Map<String, String> response = new HashMap<>();
+
+        try {
+            // JSON-Daten aus der Nachricht extrahieren
+            Map<String, String> registerData = objectMapper.readValue(message, Map.class);
+            String benutzername = registerData.get("benutzername");
+            String email = registerData.get("email");
+            String passwort = registerData.get("passwort"); // Klartext-Passwort bleibt unverändert
+            String role = registerData.get("role");
+
+            System.out.println("Neue Registrierung für: " + email);
+
+            // Prüfen, ob der Benutzer bereits existiert
+            Optional<Benutzer> userOpt = databaseCommand.findUserByEmail(email);
+            if (userOpt.isPresent()) {
+                response.put("success", "false");
+                response.put("message", "E-Mail bereits registriert.");
+                return objectMapper.writeValueAsString(response);
+            }
+
+            // Neuen Benutzer mit Klartext-Passwort erstellen
+            Benutzer neuerBenutzer = new Benutzer();
+            neuerBenutzer.setBenutzername(benutzername);
+            neuerBenutzer.setEmail(email);
+            neuerBenutzer.setPasswort(passwort);
+            neuerBenutzer.setRolle(Rolle.valueOf(role.toUpperCase()));
+
+            databaseCommand.saveUser(neuerBenutzer); // Speichern in der DB
+
+            response.put("success", "true");
+            response.put("message", "Registrierung erfolgreich!");
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            response.put("success", "false");
+            response.put("message", "Fehler bei der Registrierung.");
+        }
+
+        try {
+            return objectMapper.writeValueAsString(response);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return "{\"success\":\"false\"}";
+        }
     }
+
+
+
+}
 
 
