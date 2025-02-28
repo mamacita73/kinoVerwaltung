@@ -40,12 +40,19 @@ public class CommandFactory {
      */
     public Command<?> createCommand(String commandType, Map<String, Object> payload) {
         switch (commandType) {
-            case "BENUTZER_QUERY":
-                // Sucht einen Benutzer anhand der E-Mail
-                return new GenericCommand<Optional<Benutzer>>(() -> {
-                    String email = (String) payload.get("email");
+            case "BENUTZER_WRITE":
+                // Schreibt die Daten eines Benutzers in die Datenbank
+                return new GenericCommand<Benutzer>(() -> {
+                    Benutzer benutzer = new Benutzer();
 
-                    return benutzerRepository.findByEmail(email);
+                    benutzer.setBenutzername((String) payload.get("benutzername"));
+                    benutzer.setEmail((String) payload.get("email"));
+                    benutzer.setRolle((Rolle) payload.get("rolle"));
+                    benutzer.setPasswort((String) payload.get("passwort"));
+                    benutzer.setId((Long) payload.get("id"));
+                    benutzer.setBuchungen((List<Buchung>) payload.get("buchungen"));
+
+                    return benutzerRepository.save(benutzer);
                 });
             case "VORSTELLUNG_WRITE":
                 // Erstellt und speichert eine neue Vorstellung
