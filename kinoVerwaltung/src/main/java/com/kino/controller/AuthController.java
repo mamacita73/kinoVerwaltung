@@ -71,7 +71,7 @@ public class AuthController {
             String benutzername = registerRequest.get("benutzername");
             String email = registerRequest.get("email");
             String password = registerRequest.get("password");
-            String role = registerRequest.get("role");
+            String rolle = registerRequest.get("rolle");
 
             System.out.println("Registrierungs-Anfrage erhalten: " + email);
 
@@ -81,7 +81,7 @@ public class AuthController {
             benutzer.setEmail(email);
             benutzer.setPasswort(password);
 
-            switch (role) {
+            switch (rolle) {
                 case "ADMIN":
                     benutzer.setRolle(Rolle.ADMIN);
                     break;
@@ -95,7 +95,7 @@ public class AuthController {
             payload.put("benutzername", benutzername);
             payload.put("email", email);
             payload.put("password", password);
-            payload.put("role", role);
+            payload.put("role", rolle);
 
             // Nachricht an RabbitMQ senden
             AsyncCommandSender.sendCommand("BENUTZER_WRITE", payload);
