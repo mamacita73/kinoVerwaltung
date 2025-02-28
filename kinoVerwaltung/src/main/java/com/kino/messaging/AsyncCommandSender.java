@@ -16,6 +16,14 @@ public class AsyncCommandSender {
     private static final ObjectMapper objectMapper = new ObjectMapper();
     private static final String QUEUE_NAME = "asyncCommandQueue";
 
+    /**
+     * Sendet ein Kommando an den RabbitMQ-Server.
+     * WICHTIG! als Übergabe muss ein commandType und ein payload welches als Map<String, Object> gespeichert sein muss,übergeben werden.
+     * @param commandType Der CommandType muss aus der CommandFactory kommen.
+     * @param payload Der Payload muss als Map<String, Object> übergeben werden.
+     * @throws IOException
+     * @throws TimeoutException
+     */
     public static void sendCommand(String commandType, Map<String, Object> payload) throws IOException, TimeoutException {
         // Verbindung zum RabbitMQ-Server aufbauen
         ConnectionFactory factory = new ConnectionFactory();
