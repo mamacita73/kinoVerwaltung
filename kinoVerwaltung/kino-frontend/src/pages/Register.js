@@ -26,11 +26,16 @@ function Register() {
             const response = await fetch("http://localhost:8080/api/auth/register", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify(benutzername, email, passwort, rolle)
+                body: JSON.stringify({ benutzername, email, passwort, rolle })
             });
 
-            if (!response.ok) {
-                throw new Error("Registrierung fehlgeschlagen. Bitte überprüfe deine Eingaben.");
+            const result = await response.json(); // <--- Hier definierst du result
+
+            if (result.success === "true") {
+                setMessage("Registrierung erfolgreich!");
+                // ... ggf. Felder zurücksetzen etc.
+            } else {
+                setError(result.message || "Registrierung fehlgeschlagen.");
             }
 
             setMessage("Registrierung erfolgreich!");

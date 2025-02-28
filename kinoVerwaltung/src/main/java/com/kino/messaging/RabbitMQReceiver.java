@@ -85,7 +85,7 @@ public class RabbitMQReceiver {
             String benutzername = registerData.get("benutzername");
             String email = registerData.get("email");
             String passwort = registerData.get("passwort"); // Klartext-Passwort bleibt unverändert
-            String rolle = registerData.get("role");
+            String rolle = registerData.get("rolle");
 
             System.out.println("registerData: " + registerData);
 

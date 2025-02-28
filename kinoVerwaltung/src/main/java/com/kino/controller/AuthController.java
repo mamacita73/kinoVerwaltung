@@ -65,36 +65,52 @@ public class AuthController {
         }
     }
 
+    /**
+     * Register-Endpunkt für neue Benutzer.
+     * Erwartet z.B.:
+     * {
+     *   "benutzername": "tester",
+     *   "email": "tester@fhdw.de",
+     *   "passwort": "1234",
+     *   "rolle": "KUNDE"
+     * }
+     */
     @PostMapping("/register")
-    public void register(@RequestBody Map<String, String> registerRequest) {
+    public ResponseEntity<Map<String, String>> register(@RequestBody Map<String, String> registerRequest) {
+        // JSON Antwort an frontend
+        Map<String, String> response = new HashMap<>();
         try {
             String benutzername = registerRequest.get("benutzername");
             String email = registerRequest.get("email");
-            String password = registerRequest.get("password");
+            String passwort = registerRequest.get("passwort");
             String rolle = registerRequest.get("rolle");
 
             System.out.println("Registrierungs-Anfrage erhalten: " + email);
 
-            // JSON-Objekt für RabbitMQ erstellen
+            // Benutzer Objekt bauen
             Benutzer benutzer = new Benutzer();
             benutzer.setBenutzername(benutzername);
             benutzer.setEmail(email);
-            benutzer.setPasswort(password);
+            benutzer.setPasswort(passwort);
 
             switch (rolle) {
                 case "ADMIN":
                     benutzer.setRolle(Rolle.ADMIN);
                     break;
-                case "KUNDE:":
+                case "KUNDE":
                     benutzer.setRolle(Rolle.KUNDE);
                     break;
+                default:
+                    // Standard setzen oder Fehler werfen
+                    benutzer.setRolle(Rolle.KUNDE);
             }
 
-            Map<String, Object> payload = new HashMap<>();
 
+            // Playload für RabbitMQ
+            Map<String, Object> payload = new HashMap<>();
             payload.put("benutzername", benutzername);
             payload.put("email", email);
-            payload.put("password", password);
+            payload.put("passwort", passwort);
             payload.put("role", rolle);
 
             // Nachricht an RabbitMQ senden
@@ -103,8 +119,16 @@ public class AuthController {
             // Rückmeldung über Sendung
             System.out.println("Registrierungs-Anfrage gesendet: " + email);
 
+            // 5) JSON-Antwort ans Frontend
+            response.put("success", "true");
+            response.put("message", "Registrierung erfolgreich!");
+            return ResponseEntity.ok(response);
+
         } catch (Exception e) {
             e.printStackTrace();
+            response.put("success", "false");
+            response.put("message", "Fehler bei der Registrierung.");
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
         }
     }
 

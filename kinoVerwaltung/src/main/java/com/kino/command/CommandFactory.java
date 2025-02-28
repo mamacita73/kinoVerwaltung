@@ -47,9 +47,15 @@ public class CommandFactory {
 
                     benutzer.setBenutzername((String) payload.get("benutzername"));
                     benutzer.setEmail((String) payload.get("email"));
-                    benutzer.setRolle((Rolle) payload.get("rolle"));
                     benutzer.setPasswort((String) payload.get("passwort"));
                     benutzer.setId((Long) payload.get("id"));
+                    String rolleString = (String) payload.get("rolle");
+                    if (rolleString != null) {
+                        benutzer.setRolle(Rolle.valueOf(rolleString.toUpperCase()));
+                    } else {
+                        // Optional: Standardwert setzen oder Fehler werfen
+                        benutzer.setRolle(Rolle.KUNDE);
+                    }
                     benutzer.setBuchungen((List<Buchung>) payload.get("buchungen"));
 
                     return benutzerRepository.save(benutzer);
