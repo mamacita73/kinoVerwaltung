@@ -13,10 +13,10 @@ import java.util.concurrent.TimeoutException;
 
 @Service
 public class AsyncCommandSender {
-    private final ObjectMapper objectMapper = new ObjectMapper();
+    private static final ObjectMapper objectMapper = new ObjectMapper();
     private static final String QUEUE_NAME = "asyncCommandQueue";
 
-    public void sendCommand(String commandType, Map<String, Object> payload) throws IOException, TimeoutException {
+    public static void sendCommand(String commandType, Map<String, Object> payload) throws IOException, TimeoutException {
         // Verbindung zum RabbitMQ-Server aufbauen
         ConnectionFactory factory = new ConnectionFactory();
         factory.setHost("localhost"); // ggf. anpassen

@@ -2,6 +2,9 @@ package com.kino.controller;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.kino.entity.Benutzer;
+import com.kino.entity.Rolle;
+import com.kino.messaging.AsyncCommandSender;
 import com.kino.messaging.RabbitMQSender;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.http.HttpStatus;
@@ -63,7 +66,7 @@ public class AuthController {
     }
 
     @PostMapping("/register")
-    public ResponseEntity<Map<String, String>> register(@RequestBody Map<String, String> registerRequest) {
+    public void register(@RequestBody Map<String, String> registerRequest) {
         try {
             String benutzername = registerRequest.get("benutzername");
             String email = registerRequest.get("email");
@@ -73,25 +76,27 @@ public class AuthController {
             System.out.println("Registrierungs-Anfrage erhalten: " + email);
 
             // JSON-Objekt für RabbitMQ erstellen
-            Map<String, String> data = new HashMap<>();
-            data.put("benutzername", benutzername);
-            data.put("email", email);
-            data.put("password", password);
-            data.put("role", role);
+            Benutzer benutzer = new Benutzer();
+            benutzer.setBenutzername(benutzername);
+            benutzer.setEmail(email);
+            benutzer.setPasswort(password);
+            benutzer.setRolle(Rolle.valueOf(role));
 
-            String message = objectMapper.writeValueAsString(data);
+            Map<String, Object> payload = new HashMap<>();
 
-            // Nachricht an RabbitMQ senden & Antwort erhalten
-            String responseString = (String) rabbitTemplate.convertSendAndReceive("", "registerQueue", message);
+            payload.put("benutzername", benutzername);
+            payload.put("email", email);
+            payload.put("password", password);
+            payload.put("role", role);
 
-            // Antwort verarbeiten
-            Map<String, String> responseMap = objectMapper.readValue(responseString, new TypeReference<Map<String, String>>() {});
+            // Nachricht an RabbitMQ senden
+            AsyncCommandSender.sendCommand("BENUTZER_WRITE", payload);
 
-            return ResponseEntity.ok(responseMap);
+            // Rückmeldung über Sendung
+            System.out.println("Registrierungs-Anfrage gesendet: " + email);
 
         } catch (Exception e) {
             e.printStackTrace();
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Collections.singletonMap("success", "false"));
         }
     }
 
