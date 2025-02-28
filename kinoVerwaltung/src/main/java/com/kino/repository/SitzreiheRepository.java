@@ -1,6 +1,6 @@
 package com.kino.repository;
 
-import kinoVerwaltung.Sitzreihe;
+import com.kino.entity.Sitzreihe;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.List;

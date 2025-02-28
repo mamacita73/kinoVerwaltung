@@ -1,8 +1,8 @@
 package com.kino.entity;
 import jakarta.persistence.*;
 import kinoVerwaltung.Sitzkategorie;
-import kinoVerwaltung.Sitzreihe;
-import kinoVerwaltung.Sitzstatus;
+import com.kino.entity.Sitzreihe;
+import com.kino.entity.Sitzstatus;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -29,7 +29,7 @@ public class Sitz {
     @Column(nullable = false)
     private Sitzkategorie kategorie;
 
-    // Status (FREI, RESERVIERT, BLOCKIERT, ...)
+    // Status (FREI, RESERVIERT, BLOCKIERT,)
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private Sitzstatus status = Sitzstatus.FREI;
@@ -37,4 +37,7 @@ public class Sitz {
     @ManyToOne
     @JoinColumn(name = "sitzreihe_id", nullable = false)
     private Sitzreihe sitzreihe;
+    public void setSitzreihe(Sitzreihe sitzreihe) {
+        this.sitzreihe = sitzreihe;
+    }
 }

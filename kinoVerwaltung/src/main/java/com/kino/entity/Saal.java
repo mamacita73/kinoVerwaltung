@@ -1,9 +1,10 @@
 package com.kino.entity;
+
 import jakarta.persistence.*;
 import lombok.*;
+
 import java.util.List;
 
-// Saal-Entity: Repräsentiert einen Kinosaal
 @Entity
 @Table(name = "saal")
 @Getter
@@ -11,6 +12,7 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 public class Saal {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -18,20 +20,19 @@ public class Saal {
     @Column(nullable = false)
     private String name;
 
-    @Column(nullable = false)
+    @Column(name = "anzahl_reihen", nullable = false)
     private int anzahlReihen;
 
-    @Column(nullable = false)
+
+    @Column(name = "ist_freigegeben", nullable = false)
     private boolean istFreigegeben = false;
 
+
     @ManyToOne
-    @JoinColumn(name = "kino_id", nullable = false)
+    @JoinColumn(name = "kino_id", nullable = true)
     private Kino kino;
 
     @OneToMany(mappedBy = "saal", cascade = CascadeType.ALL)
-    private List<Vorstellung> vorstellungen;
-
-    @OneToMany(mappedBy = "saal", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Sitzreihe> sitzreihen;
-}
 
+}

@@ -101,17 +101,19 @@ public class CommandFactory {
 
                     return reservierungRepository.save(reservierung);
                 });
-            case "SAAL_WRITE":
+            case "SAAL_QUERY":
                 // Erstelle einen neuen Saal
                 return new GenericCommand<Saal>(() -> {
                     Saal saal = new Saal();
 
                     saal.setId((Long) payload.get("id"));
                     saal.setAnzahlReihen((int) payload.get("anzahlReihen"));
-                    saal.setName((String) payload.get("name"));
-                    saal.setKino((Kino) payload.get("kino"));
-                    saal.setVorstellungen((List<Vorstellung>) payload.get("vorstellungen"));
                     saal.setIstFreigegeben((boolean) payload.get("istFreigegeben"));
+                    saal.setName((String) payload.get("name"));
+                    Kino defaultKino = kinoRepository.findById(1L)
+                            .orElseThrow(() -> new RuntimeException("Default-Kino (ID=1) nicht gefunden!"));
+                    saal.setKino(defaultKino);
+
 
                     return saalRepository.save(saal);
                 });

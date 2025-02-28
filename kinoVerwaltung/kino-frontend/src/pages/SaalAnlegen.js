@@ -3,14 +3,15 @@ import "../styles/SaalAnlegen.css"; // Import der CSS-Datei
 
 const SaalAnlegen = () => {
 
+    const [saalName, setSaalName] = useState("");
     const [anzahlReihen, setAnzahlReihen] = useState(5);
     const kategorieOptionen = ["PARKETT", "LOGE", "LOGE_SERVICE"];
 
     const generateReihen = (count) => {
         return Array.from({ length: count }, (_, i) => ({
-            name: String.fromCharCode(65 + i), // A, B, C, ..., Z
-            sitze: 0,
-            kategorie: "",
+            reihenBezeichnung: String.fromCharCode(65 + i), // "A", "B", "C", ...
+            sitzeAnzahl: 0,  // Anzahl der Sitze in dieser Reihe
+            kategorie: ""   //  "PARKETT", "LOGE", "LOGE_SERVICE"
         }));
     };
 
@@ -18,7 +19,7 @@ const SaalAnlegen = () => {
 
     const handleSitzeChange = (index, value) => {
         const updatedReihen = [...reihen];
-        updatedReihen[index].sitze = parseInt(value, 10) || 0;
+        updatedReihen[index].sitzeAnzahl = parseInt(value, 10) || 0;
         setReihen(updatedReihen);
     };
 
@@ -32,40 +33,88 @@ const SaalAnlegen = () => {
         setReihen(generateReihen(anzahlReihen));
     };
 
+    const handleSave = async () => {
+        // Für jede Sitzreihe erstellen wir ein Objekt, das
+        const sitzreihen = reihen.map((row) => {
+            const sitze = Array.from({ length: row.sitzeAnzahl }, (_, i) => ({
+                nummer: i + 1,
+                kategorie: row.kategorie,
+                status: "FREI" // Standardwert
+            }));
+            return {
+                reihenBezeichnung: row.reihenBezeichnung,
+                anzahlSitze: row.sitzeAnzahl,
+                sitze: sitze
+            };
+        });
+
+        // für backend
+        const payload = {
+            name: saalName,
+            anzahlReihen: anzahlReihen,
+            istFreigegeben: true,
+            sitzreihen: sitzreihen
+        };
+
+        try {
+            const response = await fetch("http://localhost:8080/saal/anlegen", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(payload)
+            });
+            if (!response.ok) {
+                throw new Error("Fehler beim Anlegen des Saals");
+            }
+            const result = await response.json();
+            console.log("Saal erfolgreich angelegt:", result);
+        } catch (error) {
+            console.error("Fehler:", error);
+        }
+    };
+
+
     return (
         <div className="saal-container-s">
             <h2>Saal anlegen</h2>
             <div className="saal-layout-s">
-                <div className="saal-form-s">
-                <div className="reihen-einstellung-s">
-                    <label>Anzahl an Reihen:</label>
+                <div className="saal-form-s ">
+                    <div className="reihen-einstellung-s">
+                        <label>Saal Name:</label>
+                        <input
+                            className="input-s"
+                            value={saalName}
+                            onChange={(e) => setSaalName(e.target.value)}
+                            placeholder="Name des Saals"
+                        />
+                    </div>
+                    <label>Anzahl der Reihen:</label>
                     <input
-                        className="input-s"
                         type="number"
                         value={anzahlReihen}
-                        onChange={(e) => setAnzahlReihen(Math.min(26, Math.max(1, parseInt(e.target.value, 10) || 1)))}
+                        onChange={(e) => setAnzahlReihen(parseInt(e.target.value, 10) || 1)}
                         min="1"
                         max="26"
                     />
-                    <button className="button-s" onClick={handleReihenUpdate}>Übernehmen</button>
-                </div>
+                    <button className="button-s" onClick={handleReihenUpdate}>Reihen aktualisieren</button>
+
 
                 <div className="reihen-liste-s">
-                    {reihen.map((reihe, index) => (
+                    {reihen.map((row, index) => (
                         <div key={index} className="reihe-s">
-                            <span>{reihe.name}</span>
+                            <span>{row.reihenBezeichnung}</span>
                             <input
                                 className="input-s"
                                 type="number"
-                                value={reihe.sitze}
+                                placeholder="Anzahl Sitze"
+                                value={row.sitzeAnzahl}
                                 onChange={(e) => handleSitzeChange(index, e.target.value)}
                                 min="0"
                             />
                             <select
-                                value={reihe.kategorie}
+                                value={row.kategorie}
                                 onChange={(e) => handleKategorieChange(index, e.target.value)}
                             >
-                                <option value="">Sitzkategorie</option>
+                                <option value="">Kategorie wählen</option>
                                 {kategorieOptionen.map((kat, i) => (
                                     <option key={i} value={kat}>
                                         {kat}
@@ -75,9 +124,8 @@ const SaalAnlegen = () => {
                         </div>
                     ))}
                 </div>
-
-                <button className="button-s">Speichern</button>
-                </div>
+                <button className="button-s" onClick={handleSave}>Speichern</button>
+             </div>
             </div>
         </div>
     );
