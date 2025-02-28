@@ -85,8 +85,11 @@ public class RabbitMQReceiver {
             String benutzername = registerData.get("benutzername");
             String email = registerData.get("email");
             String passwort = registerData.get("passwort"); // Klartext-Passwort bleibt unverändert
-            String role = registerData.get("role");
+            String rolle = registerData.get("role");
 
+            System.out.println("registerData: " + registerData);
+
+            System.out.println("role der anmeldung: " + rolle);
             System.out.println("Neue Registrierung für: " + email);
 
             // Prüfen, ob der Benutzer bereits existiert
@@ -102,7 +105,7 @@ public class RabbitMQReceiver {
             neuerBenutzer.setBenutzername(benutzername);
             neuerBenutzer.setEmail(email);
             neuerBenutzer.setPasswort(passwort);
-            neuerBenutzer.setRolle(Rolle.valueOf(role.toUpperCase()));
+            neuerBenutzer.setRolle(Rolle.valueOf(rolle.toUpperCase()));
 
             databaseCommand.saveUser(neuerBenutzer); // Speichern in der DB
 

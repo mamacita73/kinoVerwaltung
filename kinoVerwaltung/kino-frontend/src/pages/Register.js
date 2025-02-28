@@ -9,46 +9,42 @@ function Register() {
     const [message, setMessage] = useState("");
     const [error, setError] = useState("");
 
+
     const handleSubmit = async (e) => {
         e.preventDefault();
         setError("");
         setMessage("");
 
+
         // Einfache Validierung
         if (!benutzername.trim() || !email.trim() || !passwort.trim()) {
-            setError("Alle Felder müssen ausgefüllt werden.");
-            return;
+            return setError("Alle Felder müssen ausgefüllt werden.");
         }
 
         if (passwort.length < 3) {
-            setError("Das Passwort muss mindestens 3 Zeichen lang sein.");
-            return;
+            return setError("Das Passwort muss mindestens 3 Zeichen lang sein.");
         }
-
-        // Sicherstellen, dass Rolle nicht leer ist
-        if (!rolle) {
-            setRolle("KUNDE");
-        }
-
 
         try {
-            const result = await registerUser(benutzername, email, passwort, rolle);
+            const response = await fetch("http://localhost:8080/api/auth/register", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(benutzername, email, passwort, rolle)
+            });
 
-            if (result.success) {
-                setMessage("Registrierung erfolgreich!");
-                setError("");
-                setBenutzername("");
-                setEmail("");
-                setPasswort("");
-                setRolle("KUNDE"); // Standard-Rolle nach Registrierung zurücksetzen
-            } else {
-                setError("Fehler bei der Registrierung: " + (result.message || "Unbekannt"));
-                setMessage("");
+            if (!response.ok) {
+                throw new Error("Registrierung fehlgeschlagen. Bitte überprüfe deine Eingaben.");
             }
-        } catch (err) {
-            setError("Netzwerkfehler oder Server nicht erreichbar.");
-        }
 
+            setMessage("Registrierung erfolgreich!");
+            setError("");
+            setBenutzername("");
+            setEmail("");
+            setPasswort("");
+            setRolle("");
+        } catch (err) {
+            setError(err.message || "Netzwerkfehler oder Server nicht erreichbar.");
+        }
     };
 
     return (
