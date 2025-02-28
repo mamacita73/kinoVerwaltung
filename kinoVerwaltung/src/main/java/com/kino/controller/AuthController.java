@@ -80,7 +80,15 @@ public class AuthController {
             benutzer.setBenutzername(benutzername);
             benutzer.setEmail(email);
             benutzer.setPasswort(password);
-            benutzer.setRolle(Rolle.valueOf(role));
+
+            switch (role) {
+                case "ADMIN":
+                    benutzer.setRolle(Rolle.ADMIN);
+                    break;
+                case "KUNDE:":
+                    benutzer.setRolle(Rolle.KUNDE);
+                    break;
+            }
 
             Map<String, Object> payload = new HashMap<>();
 
