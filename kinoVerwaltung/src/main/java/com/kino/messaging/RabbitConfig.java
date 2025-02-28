@@ -36,12 +36,12 @@ public class RabbitConfig {
     @Bean
     public Queue asyncCommandQueue() {
         //  wird vom Backend verwendet und muss existieren
-        return new Queue("asyncCommandQueue", true);
+        return new Queue("asyncCommandQueue", false);
     }
 
     @Bean
     public Queue registerQueue() {
-        return new Queue("registerQueue", true); // Persistente Queue für Registrierung
+        return new Queue("registerQueue", false); // Persistente Queue für Registrierung
     }
 
 }
