@@ -25,7 +25,7 @@ public class AsyncCommandReceiver {
     public void handleAsyncCommand(String message) {
         try {
             // Deserialisiere die Nachricht in eine Map
-            Map<String, Object> msgMap = objectMapper.readValue(message, Map.class);
+            Map msgMap = objectMapper.readValue(message, Map.class);
             String commandType = (String) msgMap.get("command");
             Map<String, Object> payload = (Map<String, Object>) msgMap.get("payload");
 

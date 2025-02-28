@@ -101,7 +101,7 @@ public class CommandFactory {
 
                     return reservierungRepository.save(reservierung);
                 });
-            case "SAAL_QUERY":
+            case "SAAL_WRITE":
                 // Erstelle einen neuen Saal
                 return new GenericCommand<Saal>(() -> {
                     Saal saal = new Saal();
