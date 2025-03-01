@@ -25,9 +25,13 @@ public class AsyncCommandSender {
      * @throws TimeoutException
      */
     public static void sendCommand(String commandType, Map<String, Object> payload) throws IOException, TimeoutException {
+        System.out.println("=== [AsyncCommandSender] Sende Command ===");
+        System.out.println("CommandType: " + commandType);
+        System.out.println("Payload: " + payload);
+
         // Verbindung zum RabbitMQ-Server aufbauen
         ConnectionFactory factory = new ConnectionFactory();
-        factory.setHost("rabbitmq"); // ggf. anpassen
+        factory.setHost("rabbitmq");
 
         // Verbindung aufbauen und Channel erstellen
         try (Connection connection = factory.newConnection();

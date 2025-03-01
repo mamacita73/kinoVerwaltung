@@ -12,10 +12,14 @@ public class GenericCommand<R> implements Command<R> {
 
     @Override
     public void execute() {
+        System.out.println("=== [GenericCommand] execute() aufgerufen ===");
         try {
             result = action.apply();
+            System.out.println("=== [GenericCommand] Aktion erfolgreich ausgeführt ===");
         } catch (Exception e) {
             exception = e;
+            System.err.println("=== [GenericCommand] Fehler während execute(): " + e.getMessage() + " ===");
+            e.printStackTrace();
         }
     }
 

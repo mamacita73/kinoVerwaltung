@@ -34,12 +34,13 @@ const SaalAnlegen = () => {
     };
 
     const handleSave = async () => {
-        // Für jede Sitzreihe erstellen wir ein Objekt, das
+        // Für jede Reihe: Objekt mit Bezeichnung, Sitzanzahl und einem Array an Sitzen
+        //  Sitze basierend auf der eingegebenen "sitzeAnzahl" und Kategorie erstellt
         const sitzreihen = reihen.map((row) => {
             const sitze = Array.from({ length: row.sitzeAnzahl }, (_, i) => ({
                 nummer: i + 1,
                 kategorie: row.kategorie,
-                status: "FREI" // Standardwert
+                status: "FREI" // Standardstatus
             }));
             return {
                 reihenBezeichnung: row.reihenBezeichnung,
@@ -48,13 +49,18 @@ const SaalAnlegen = () => {
             };
         });
 
-        // für backend
+        // Erstelle den vollständigen Payload, der an das Backend gesendet wird.
         const payload = {
-            name: saalName,
-            anzahlReihen: anzahlReihen,
-            istFreigegeben: true,
-            sitzreihen: sitzreihen
+            command: "SAAL_WRITE",
+            payload: {
+                name: saalName,
+                anzahlReihen: anzahlReihen,
+                istFreigegeben: true,
+                sitzreihen: sitzreihen //  Array mit den Sitzreihen (inkl. Sitzen) übergeben
+            }
         };
+
+        console.log("Sende Payload:", JSON.stringify(payload, null, 2));
 
         try {
             const response = await fetch("http://localhost:8080/saal/anlegen", {
@@ -62,11 +68,12 @@ const SaalAnlegen = () => {
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify(payload)
             });
+            console.log("Response Status:", response.status);
             if (!response.ok) {
                 throw new Error("Fehler beim Anlegen des Saals");
             }
             const result = await response.json();
-            console.log("Saal erfolgreich angelegt:", result);
+            console.log("Response Data:", result);
         } catch (error) {
             console.error("Fehler:", error);
         }

@@ -3,7 +3,7 @@ import jakarta.persistence.*;
 import lombok.*;
 import java.util.List;
 
-    // Kino-Entity: Repräsentiert ein Kino mit mehreren Sälen
+    //Repräsentiert ein Kino mit mehreren Sälen
     @Entity
     @Table(name = "kino")
     @Getter

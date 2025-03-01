@@ -8,12 +8,14 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
 @RestController
 @RequestMapping("/saal")
+@CrossOrigin()
 public class SaalController {
 
     @Autowired
@@ -33,11 +35,17 @@ public class SaalController {
      * Nimmt den JSON-Payload entgegen und sendet ihn als "SAAL_QUERY" an RabbitMQ.
      */
     @PostMapping("/anlegen")
-    public ResponseEntity<?> anlegen(@RequestBody Map<String, Object> body) {
+    public ResponseEntity<?> createSaal(@RequestBody Map<String, Object> body) {
+        System.out.println("=== [Controller] /saal/anlegen aufgerufen ===");
+        System.out.println("Empfangener Body: " + body);
         try {
             // Sendet den gesamten Body an RabbitMQ
-            AsyncCommandSender.sendCommand("SAAL_QUERY", body);
-            return ResponseEntity.ok("Saal-Erstellen Command an RabbitMQ");
+            AsyncCommandSender.sendCommand("SAAL_WRITE", body);
+
+            Map<String, String> result = new HashMap<>();
+            result.put("message", "Saal erfolgreich angelegt");
+            result.put("status", "OK");
+            return ResponseEntity.ok(result);
         } catch (Exception e) {
             e.printStackTrace();
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)

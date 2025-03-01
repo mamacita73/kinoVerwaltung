@@ -6,6 +6,7 @@ import com.kino.entity.Sitzreihe;
 import com.kino.repository.SaalRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Optional;
@@ -37,7 +38,9 @@ public class SaalService {
     }
 
     //  Anlegen eines neuen Saals inkl. Sitzreihen und Sitzen
+    @Transactional
     public Saal anlegenSaal(Saal saal) {
+        System.out.println("=== [SaalService] anlegenSaal aufgerufen ===");
         // Prüfen, ob Sitzreihen existieren
         if (saal.getSitzreihen() != null) {
             for (Sitzreihe reihe : saal.getSitzreihen()) {
@@ -46,6 +49,7 @@ public class SaalService {
 
                 // Prüfen, ob Sitze vorhanden sind
                 if (reihe.getSitze() != null) {
+                    reihe.setAnzahlSitze(reihe.getSitze().size());
                     for (Sitz sitz : reihe.getSitze()) {
                         // Sitzreihe in jedem Sitz setzen
                         sitz.setSitzreihe(reihe);
@@ -54,8 +58,10 @@ public class SaalService {
             }
         }
 
-        // Jetzt speichern
-        return saalRepository.save(saal);
+        // speichern
+        Saal saved = saalRepository.save(saal);
+        System.out.println("=== [SaalService] anlegenSaal: Saal gespeichert mit ID " + saved.getId());
+        return saved;
     }
 
 }

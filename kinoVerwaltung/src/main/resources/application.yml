@@ -15,6 +15,19 @@ spring:
     hibernate:
       ddl-auto: update  # Alternativ "validate", falls das Schema manuell verwaltet wird
 
+
+logging:
+  level:
+    root: INFO
+    org:
+      hibernate:
+        SQL: DEBUG       # Zeigt die generierten SQL-Statements an
+        type: TRACE      # Zeigt die gebundenen Parameter an
+    com.kino: DEBUG       # Für deine eigenen Klassen
+  pattern:
+    console: "%d{HH:mm:ss.SSS} %-5level %logger{36} - %msg%n"
+
+
   data:
     mongodb:
       uri: mongodb://mongo:27017/kinodb

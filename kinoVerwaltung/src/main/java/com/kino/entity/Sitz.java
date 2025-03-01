@@ -1,6 +1,6 @@
 package com.kino.entity;
 import jakarta.persistence.*;
-import kinoVerwaltung.Sitzkategorie;
+import com.kino.entity.Sitzkategorie;
 import com.kino.entity.Sitzreihe;
 import com.kino.entity.Sitzstatus;
 import lombok.AllArgsConstructor;

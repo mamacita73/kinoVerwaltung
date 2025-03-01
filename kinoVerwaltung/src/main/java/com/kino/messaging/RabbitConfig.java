@@ -41,7 +41,7 @@ public class RabbitConfig {
 
     @Bean
     public Queue registerQueue() {
-        return new Queue("registerQueue", false); // Persistente Queue für Registrierung
+        return new Queue("registerQueue", false);
     }
 
 }

@@ -23,11 +23,16 @@ public class AsyncCommandReceiver {
      */
     @RabbitListener(queues = "asyncCommandQueue")
     public void handleAsyncCommand(String message) {
+        System.out.println("=== [AsyncCommandReceiver] Nachricht empfangen ===");
+        System.out.println("Nachricht: " + message);
         try {
-            // Deserialisiere die Nachricht in eine Map
+            // Deserialisiere die Nachricht in eine
+            System.out.println("Nachricht empfangen: " + message);
             Map msgMap = objectMapper.readValue(message, Map.class);
             String commandType = (String) msgMap.get("command");
+            System.out.println("=== [AsyncCommandReceiver] Deserialisierte Nachricht: " + msgMap);
             Map<String, Object> payload = (Map<String, Object>) msgMap.get("payload");
+            System.out.println("=== [AsyncCommandReceiver] Payload empfangen: " + payload);
 
             // Erzeuge das passende Command und führe es aus
             Command<?> cmd = commandFactory.createCommand(commandType, payload);
@@ -35,12 +40,5 @@ public class AsyncCommandReceiver {
         } catch (Exception e) {
             e.printStackTrace();
         }
-    }
-
-
-    // logging für debugging
-    @RabbitListener(queues = "asyncCommandQueue")
-    public void receiveAsyncCommand(String message) {
-        System.out.println("Nachricht von asyncCommandQueue empfangen: " + message);
     }
 }
