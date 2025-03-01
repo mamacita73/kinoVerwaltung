@@ -4,6 +4,7 @@ package com.kino.command;
 import com.kino.entity.*;
 import com.kino.repository.*;
 import com.kino.service.SaalService;
+import com.kino.service.VorstellungService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -64,20 +65,8 @@ public class CommandFactory {
 
                     return benutzerRepository.save(benutzer);
                 });
-            case "VORSTELLUNG_WRITE":
-                // Erstellt und speichert eine neue Vorstellung
-                return new GenericCommand<Vorstellung>(() -> {
-                    Vorstellung vorstellung = new Vorstellung();
 
-                    vorstellung.setFilmTitel((String) payload.get("filmName"));
-                    vorstellung.setDauerMinuten((int) payload.get("dauer"));
-                    vorstellung.setId((Long) payload.get("id"));
-                    vorstellung.setSaal((Saal) payload.get("saal"));
-                    vorstellung.setStartzeit((String) payload.get("startzeit"));
-                    vorstellung.setBuchungen((List<Buchung>) payload.get("buchungen"));
 
-                    return vorstellungRepository.save(vorstellung);
-                });
             case "BUCHUNG_QUERY":
                 // Suche eine Buchung anhand einer BuchungsNummer
                 return new GenericCommand<Optional<Buchung>>(() -> {
@@ -117,7 +106,7 @@ public class CommandFactory {
                     // Erstelle das Saal-Objekt
                     Saal saal = new Saal();
                     saal.setName((String) innerPayload.get("name"));
-                    saal.setAnzahlReihen((int) innerPayload.get("anzahlReihen"));
+                    saal.setAnzahlReihen(((Number) innerPayload.get("anzahlReihen")).intValue());
                     saal.setIstFreigegeben((boolean) innerPayload.get("istFreigegeben"));
 
                     // Setze ein Standard-Kino (hier aus der DB, ID=1)
@@ -133,7 +122,7 @@ public class CommandFactory {
                             Sitzreihe reihe = new Sitzreihe();
                             reihe.setReihenBezeichnung((String) reiheMap.get("reihenBezeichnung"));
                             // Achte auf den korrekten Schlüssel; hier nehmen wir "anzahlSitze"
-                            reihe.setAnzahlSitze((int) reiheMap.get("anzahlSitze"));
+                            reihe.setAnzahlSitze(((Number) reiheMap.get("anzahlSitze")).intValue());
                             reihe.setSaal(saal);
                             System.out.println("=== [CommandFactory] Verarbeite Sitzreihe: " + reihe.getReihenBezeichnung() + " mit " + reihe.getAnzahlSitze() + " Sitzen ===");
 
@@ -143,7 +132,7 @@ public class CommandFactory {
                                 List<Sitz> sitze = new ArrayList<>();
                                 for (Map<String, Object> sitzMap : sitzePayload) {
                                     Sitz sitz = new Sitz();
-                                    sitz.setNummer((int) sitzMap.get("nummer"));
+                                    sitz.setNummer(((Number) sitzMap.get("nummer")).intValue());
                                     sitz.setKategorie(Sitzkategorie.valueOf((String) sitzMap.get("kategorie")));
                                     sitz.setStatus(Sitzstatus.valueOf((String) sitzMap.get("status")));
                                     sitz.setSitzreihe(reihe);
@@ -163,6 +152,42 @@ public class CommandFactory {
                     System.out.println("=== [CommandFactory] Saal gespeichert, ID: " + saved.getId() + " ===");
                     return saved;
                 });
+
+            case "VORSTELLUNG_WRITE":
+                return new GenericCommand<Vorstellung>(() -> {
+                    System.out.println("=== [CommandFactory] Erstelle VORSTELLUNG_WRITE-Command ===");
+                    // Extrahiere den inneren Payload (falls doppelt verschachtelt; andernfalls direkt)
+                    Map<String, Object> innerPayload = (Map<String, Object>) payload.get("payload");
+                    if (innerPayload == null) {
+                        innerPayload = payload;
+                    }
+                    // Werte aus dem Payload auslesen
+                    Long saalId = ((Number) innerPayload.get("saalId")).longValue();
+                    String filmTitel = (String) innerPayload.get("filmTitel");
+                    String startzeitStr = (String) innerPayload.get("startzeit");
+                    int dauerMinuten = ((Number) innerPayload.get("dauerMinuten")).intValue();
+
+                    // Saal laden
+                    Saal saal = saalRepository.findById(saalId)
+                            .orElseThrow(() -> new RuntimeException("Saal mit ID=" + saalId + " nicht gefunden!"));
+
+                    // Vorstellung-Objekt erstellen und befüllen
+                    Vorstellung vorstellung = new Vorstellung();
+                    vorstellung.setFilmTitel(filmTitel);
+                    // Konvertiere den String in LocalTime (z.B. "16:00")
+                    vorstellung.setStartzeit(java.time.LocalTime.parse(startzeitStr));
+                    vorstellung.setDauerMinuten(dauerMinuten);
+                    vorstellung.setSaal(saal);
+
+                    // Persistieren
+                    Vorstellung saved = vorstellungRepository.save(vorstellung);
+                    System.out.println("=== [CommandFactory] Vorstellung gespeichert, ID: " + saved.getId() + " ===");
+                    return saved;
+                });
+
+
+
+
             default:
                 throw new IllegalArgumentException("Unbekannter Command-Typ: " + commandType);
         }

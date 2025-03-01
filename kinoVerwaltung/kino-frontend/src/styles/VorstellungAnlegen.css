@@ -1,0 +1,91 @@
+/* Stellt sicher, dass nur der Formularbereich grau ist */
+.vorstellung-container-v {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    width: 100%;
+    max-width: 1200px;
+    margin: 0 auto;
+    text-align: center;
+}
+
+/* Layout für Buttons und Formular */
+.vorstellung-layout-v {
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    gap: 40px;
+    margin-top: 20px;
+    width: 100%;
+}
+
+/* Der Bereich mit den Einstellungen und Reihen */
+.vorstellung-form-v {
+    background-color: #dcdcdc;
+    padding: 20px;
+    border-radius: 8px;
+    width: 100%;
+    max-width: 800px;
+
+}
+
+/* Jede Zeile (Label + Input) */
+.form-row {
+    display: flex;
+    flex-direction: row; /* Label und Input nebeneinander */
+    align-items: center;
+    margin-bottom: 1rem; /* Abstand zwischen den Zeilen */
+}
+
+/* Label-Bereich */
+.form-row label {
+    width: 150px; /* feste Breite für Label, damit Inputs ausgerichtet sind */
+    font-weight: bold;
+}
+
+/* Input-Bereich (Input, Select etc.) */
+.form-row input,
+.form-row select {
+    flex: 1;               /* füllt den verbleibenden Platz */
+    padding: 8px;
+    font-size: 14px;
+    margin-left: 10px;     /* Abstand zum Label */
+    border: 1px solid #aaa;
+    border-radius: 4px;
+    box-sizing: border-box;
+}
+
+/* Button-Styling */
+.button-v {
+    background-color: #3498db;
+    color: #fff;
+    padding: 10px;
+    border: none;
+    cursor: pointer;
+    font-size: 16px;
+    width: 250px;
+    text-align: center;
+    margin: 20px;
+}
+
+/* Responsive Anpassungen */
+@media (max-width: 768px) {
+    .saal-layout-s {
+        flex-direction: column;
+        gap: 20px;
+    }
+
+    .reihe-s {
+        flex-direction: column;
+        align-items: stretch;
+        height: auto;
+    }
+
+    .input-s,
+    .select-s {
+        width: 100%;
+        max-width: 100%;
+    }
+}

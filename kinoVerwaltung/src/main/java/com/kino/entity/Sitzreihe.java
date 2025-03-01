@@ -1,4 +1,6 @@
 package com.kino.entity;
+
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -32,5 +34,6 @@ public class Sitzreihe {
 
     // Beziehung zu Sitz
     @OneToMany(mappedBy = "sitzreihe", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonManagedReference
     private List<Sitz> sitze;
 }

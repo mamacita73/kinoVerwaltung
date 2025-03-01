@@ -2,6 +2,8 @@ package com.kino.entity;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.time.LocalTime;
+import java.util.ArrayList;
 import java.util.List;
 
 
@@ -17,19 +19,21 @@ public class Vorstellung {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false)
+    @Column(name = "film_titel", nullable = false)
     private String filmTitel;
 
-    @Column(nullable = false)
-    private String startzeit;
+    // Nur Uhrzeit, kein Datum
+    @Column(name = "startzeit", columnDefinition = "TIME", nullable = false)
+    private LocalTime startzeit;
 
-    @Column(nullable = false)
+    // UML: dauerMinuten
+    @Column(name = "dauer_minuten", nullable = false)
     private int dauerMinuten;
 
-    @ManyToOne
+    // Beziehung zum Saal (jeder Vorstellung ist ein Saal zugeordnet)
+    @ManyToOne(optional = false)
     @JoinColumn(name = "saal_id", nullable = false)
     private Saal saal;
 
-    @OneToMany(mappedBy = "vorstellung", cascade = CascadeType.ALL)
-    private List<Buchung> buchungen;
+
 }

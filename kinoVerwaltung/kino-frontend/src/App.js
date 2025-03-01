@@ -10,6 +10,7 @@ import TicketReservierung from "./pages/TicketReservierung";
 import ReservierungDashboard from "./pages/ReservierungDashboard";
 import ReservierungZuBuchung from "./pages/ReservierungZuBuchung";
 import Buchung from "./pages/Buchung";
+import VorstellungAnlegen from "./pages/VorstellungAnlegen";
 
 function App() {
   return (
@@ -26,6 +27,7 @@ function App() {
             <Route path="/reservierungdashboard" element={<ReservierungDashboard />} />
             <Route path="/reservierungzubuchung" element={<ReservierungZuBuchung />} />
             <Route path="/buchung" element={<Buchung />} />
+            <Route path="/vorstellunganlegen" element={<VorstellungAnlegen />} />
 
         </Routes>
       </Router>

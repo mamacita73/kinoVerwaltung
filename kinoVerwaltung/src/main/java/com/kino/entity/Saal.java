@@ -1,5 +1,7 @@
 package com.kino.entity;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -30,9 +32,11 @@ public class Saal {
 
     @ManyToOne
     @JoinColumn(name = "kino_id", nullable = true)
+    @JsonBackReference  // Rückreferenz, damit Jackson nicht den gesamten Kino-Objektbaum serialisiert
     private Kino kino;
 
     @OneToMany(mappedBy = "saal", cascade = CascadeType.ALL)
+    @JsonIgnore
     private List<Sitzreihe> sitzreihen;
 
 }

@@ -2,6 +2,8 @@ package com.kino.service;
 
 import com.kino.entity.Kino;
 import com.kino.repository.KinoRepository;
+import com.kino.repository.SaalRepository;
+import com.kino.repository.VorstellungRepository;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -10,7 +12,8 @@ import org.springframework.context.annotation.Configuration;
 public class DataInitializer {
 
     @Bean
-    public CommandLineRunner initData(KinoRepository kinoRepository) {
+    public CommandLineRunner initData(KinoRepository kinoRepository, SaalRepository saalRepository,
+                                      VorstellungRepository vorstellungRepository) {
         return args -> {
             // Prüfen, ob Kino mit ID 1 bereits existiert
             Long kinoId = 1L;
@@ -26,6 +29,12 @@ public class DataInitializer {
             } else {
                 System.out.println("Kino mit ID=1 existiert bereits.");
             }
+
+            //Prüfen ob Vorstellungen existieren
+            if(vorstellungRepository.count() == 0) {
+
+            }
+
         };
     }
 }

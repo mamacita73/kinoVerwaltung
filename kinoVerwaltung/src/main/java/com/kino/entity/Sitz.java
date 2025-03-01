@@ -1,8 +1,7 @@
 package com.kino.entity;
+
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
-import com.kino.entity.Sitzkategorie;
-import com.kino.entity.Sitzreihe;
-import com.kino.entity.Sitzstatus;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -36,8 +35,23 @@ public class Sitz {
 
     @ManyToOne
     @JoinColumn(name = "sitzreihe_id", nullable = false)
+    @JsonBackReference
     private Sitzreihe sitzreihe;
     public void setSitzreihe(Sitzreihe sitzreihe) {
         this.sitzreihe = sitzreihe;
+    }
+    // Prüft, ob der Sitz frei ist (Sitzstatus = FREI)
+    public boolean istVerfuegbar() {
+        return this.status == Sitzstatus.FREI;
+    }
+
+    // Setzt den Sitzstatus auf RESERVIERT
+    public void reservieren() {
+        setStatus(Sitzstatus.RESERVIERT);
+    }
+
+    // Setzt den Sitzstatus auf GEBUCHT
+    public void buchen() {
+        setStatus(Sitzstatus.GEBUCHT);
     }
 }

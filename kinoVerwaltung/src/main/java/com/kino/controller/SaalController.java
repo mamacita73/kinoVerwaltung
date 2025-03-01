@@ -1,5 +1,6 @@
 package com.kino.controller;
 
+import com.kino.dto.SaalDTO;
 import com.kino.entity.Saal;
 import com.kino.messaging.AsyncCommandSender;
 import com.kino.service.SaalService;
@@ -32,24 +33,32 @@ public class SaalController {
     }
 
     /**
-     * Nimmt den JSON-Payload entgegen und sendet ihn als "SAAL_QUERY" an RabbitMQ.
+     * POST: Neuen Saal anlegen.
+     * Erwartet ein JSON im Format des SaalDTO, z.B.:
+     * {
+     *   "name": "Saal 1",
+     *   "anzahlReihen": 3,
+     *   "istFreigegeben": true
+     * }
      */
-    @PostMapping("/anlegen")
-    public ResponseEntity<?> createSaal(@RequestBody Map<String, Object> body) {
-        System.out.println("=== [Controller] /saal/anlegen aufgerufen ===");
-        System.out.println("Empfangener Body: " + body);
-        try {
-            // Sendet den gesamten Body an RabbitMQ
-            AsyncCommandSender.sendCommand("SAAL_WRITE", body);
+    @PostMapping("/create")
+    @CrossOrigin
+    public ResponseEntity<SaalDTO> createSaal(@RequestBody SaalDTO dto) {
+        // Saal-Entity aus dem DTO
+        Saal saal = new Saal();
+        saal.setName(dto.getName());
+        saal.setAnzahlReihen(dto.getAnzahlReihen());
+        saal.setIstFreigegeben(dto.isIstFreigegeben());
+        //Hier kann noch ein Standard-Kino gesetzt werden (z. B. per Service)
+        Saal saved = saalService.anlegenSaal(saal);
 
-            Map<String, String> result = new HashMap<>();
-            result.put("message", "Saal erfolgreich angelegt");
-            result.put("status", "OK");
-            return ResponseEntity.ok(result);
-        } catch (Exception e) {
-            e.printStackTrace();
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body("Fehler beim Senden an RabbitMQ: " + e.getMessage());
-        }
+        // Konvertiere das gespeicherte Entity in ein DTO
+        SaalDTO responseDto = new SaalDTO(
+                saved.getId(),
+                saved.getName(),
+                saved.getAnzahlReihen(),
+                saved.isIstFreigegeben()
+        );
+        return ResponseEntity.ok(responseDto);
     }
 }

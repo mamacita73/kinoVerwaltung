@@ -1,4 +1,6 @@
 package com.kino.entity;
+
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.*;
 import java.util.List;
@@ -22,6 +24,7 @@ import java.util.List;
         private String adresse;
 
         @OneToMany(mappedBy = "kino", cascade = CascadeType.ALL)
+        @JsonManagedReference  // Verwaltung der Beziehung: Kino gibt seine Säle aus
         private List<Saal> saele;
     }
 
