@@ -26,11 +26,13 @@ public class SaalController {
     private SaalService saalService;
 
     @GetMapping
+    @CrossOrigin
     public List<Saal> getAllSäle() {
         return saalService.getAllSäle();
     }
 
     @GetMapping("/{id}")
+    @CrossOrigin
     public Optional<Saal> getSaalById(@PathVariable Long id) {
         return saalService.getSaalById(id);
     }
@@ -68,6 +70,7 @@ public class SaalController {
 
     //  Alle Säle + Vorstellungen
     @GetMapping("/mitVorstellungen")
+    @CrossOrigin
     public ResponseEntity<List<SaeleMitVorstellungenDTO>> getSaeleMitVorstellungen() {
         List<Saal> saele = saalService.getAllSaeleMitVorstellungen();
 

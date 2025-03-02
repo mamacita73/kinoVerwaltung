@@ -2,6 +2,8 @@ package com.kino.entity;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.util.List;
+
 // Reservierung-Entity: Repräsentiert eine Sitzplatzreservierung
 @Entity
 @Table(name = "reservierung")
@@ -30,5 +32,9 @@ public class Reservierung {
     @ManyToOne
     @JoinColumn(name = "vorstellung_id", nullable = false)
     private Vorstellung vorstellung;
+
+    // Liste der reservierten Sitze
+    @OneToMany(mappedBy = "reservierung", cascade = CascadeType.ALL)
+    private List<ReservierungSitz> reservierungSitze;
 }
 

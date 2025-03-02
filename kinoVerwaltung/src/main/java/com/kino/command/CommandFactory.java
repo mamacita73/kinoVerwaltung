@@ -14,6 +14,7 @@ import java.util.*;
 public class CommandFactory {
     private final BenutzerRepository benutzerRepository;
     private final VorstellungRepository vorstellungRepository;
+    private final  VorstellungService vorstellungService;
     private final BuchungRepository buchungRepository;
     private final KinoRepository kinoRepository;
     private final ReservierungRepository reservierungRepository;
@@ -22,13 +23,14 @@ public class CommandFactory {
 
     @Autowired
     public CommandFactory(BenutzerRepository benutzerRepository,
-                          VorstellungRepository vorstellungRepository,
+                          VorstellungRepository vorstellungRepository, VorstellungService vorstellungService,
                           BuchungRepository buchungRepository,
                           KinoRepository kinoRepository,
                           ReservierungRepository reservierungRepository,
                           SaalRepository saalRepository, SaalService saalService) {
         this.benutzerRepository = benutzerRepository;
         this.vorstellungRepository = vorstellungRepository;
+        this.vorstellungService = vorstellungService;
         this.buchungRepository = buchungRepository;
         this.kinoRepository = kinoRepository;
         this.reservierungRepository = reservierungRepository;
@@ -284,8 +286,40 @@ public class CommandFactory {
                     return saved;
                 });
 
+            case "VORSTELLUNG_MULTI_WRITE":
+            return new GenericCommand<List<Vorstellung>>(() -> {
+                System.out.println("=== [CommandFactory] Erstelle VORSTELLUNG_MULTI_WRITE-Command ===");
+                // Extrahiere den inneren Payload
+                Map<String, Object> innerPayload = (Map<String, Object>) payload.get("payload");
+                if (innerPayload == null) {
+                    innerPayload = payload;
+                }
 
+                // Listen aus dem Payload auslesen
+                List<?> saalIdsList = (List<?>) innerPayload.get("saalIds");
+                List<?> startzeitenList = (List<?>) innerPayload.get("startzeiten");
+                String filmTitel = (String) innerPayload.get("filmTitel");
+                int dauerMinuten = ((Number) innerPayload.get("dauerMinuten")).intValue();
 
+                // Überprüfen, ob die Listen gleich lang sind
+                if (saalIdsList.size() != startzeitenList.size()) {
+                    throw new RuntimeException("Die Anzahl der Säle und Startzeiten muss übereinstimmen.");
+                }
+
+                List<Vorstellung> created = new ArrayList<>();
+                for (int i = 0; i < saalIdsList.size(); i++) {
+                    Long saalId = ((Number) saalIdsList.get(i)).longValue();
+                    String startzeitStr = startzeitenList.get(i).toString();
+
+                    // Vorstellung erstellen – Verwende hier die bereits existierende Methode im Service
+                    Vorstellung v = vorstellungService.anlegenVorstellung(
+                            filmTitel, startzeitStr, dauerMinuten, saalId
+                    );
+                    created.add(v);
+                }
+                System.out.println("=== [CommandFactory] " + created.size() + " Vorstellungen erstellt ===");
+                return created;
+            });
 
             default:
                 throw new IllegalArgumentException("Unbekannter Command-Typ: " + commandType);
