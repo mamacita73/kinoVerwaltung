@@ -1,25 +1,23 @@
 package com.kino.controller;
 
 
-import com.kino.dto.MultiVorstellungenDTO;
 import com.kino.dto.VorstellungDTO;
 import com.kino.entity.Saal;
 import com.kino.entity.Sitz;
 import com.kino.entity.Sitzreihe;
 import com.kino.entity.Vorstellung;
+import com.kino.messaging.AsyncCommandSender;
 import com.kino.repository.SaalRepository;
 import com.kino.repository.VorstellungRepository;
 import com.kino.service.VorstellungService;
 
 import kinoVerwaltung.Sitzstatus;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @RestController
@@ -32,53 +30,22 @@ public class VorstellungController {
     private VorstellungRepository vorstellungRepository;
     @Autowired
     private SaalRepository saalRepository;
-    /**
-     * POST: Neue Vorstellung anlegen.
-     * Erwartet ein JSON-Objekt wie:
-     * {
-     *   "filmTitel": "Film X",
-     *   "startzeit": "16:00",
-     *   "dauerMinuten": 90,
-     *   "saalId": 1
-     * }
-     */
+
+
+    // POST: Mehrfache Vorstellungen anlegen (asynchron über RabbitMQ)
     @PostMapping("/anlegenMulti")
     @CrossOrigin
-    public ResponseEntity<List<VorstellungDTO>> createMultiVorstellung(@RequestBody MultiVorstellungenDTO dto) {
-        // Überprüfe, ob die Anzahl der Säle und Startzeiten übereinstimmt
-        if(dto.getSaalIds().size() != dto.getStartzeiten().size()){
-            return ResponseEntity.badRequest().build();
+    public ResponseEntity<?> createMultiVorstellung(@RequestBody Map<String, Object> requestBody) {
+        try {
+            // Erwartetes Format:
+            // { "command": "VORSTELLUNG_MULTI_WRITE", "payload": { "filmTitel": "...", "saalIds": [...], "startzeiten": [...], "dauerMinuten": 120 } }
+            AsyncCommandSender.sendCommand("VORSTELLUNG_MULTI_WRITE", (Map<String, Object>) requestBody.get("payload"));
+            Map<String, String> response = Collections.singletonMap("message", "Multi-Vorstellungs-Command gesendet.");
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.CONFLICT).body(Collections.singletonMap("message", e.getMessage()));
         }
-
-        // Liste zum Sammeln der angelegten Vorstellungen
-        List<Vorstellung> created = new ArrayList<>();
-
-        // Für jeden Eintrag (Index i) einen neuen Vorstellung-Datensatz anlegen
-        for (int i = 0; i < dto.getSaalIds().size(); i++) {
-            Long saalId = dto.getSaalIds().get(i);
-            String startzeit = dto.getStartzeiten().get(i);
-            // Delegiere an den Service, der bereits eine Vorstellung anlegt
-            Vorstellung v = vorstellungService.anlegenVorstellung(
-                    dto.getFilmTitel(),
-                    startzeit,
-                    dto.getDauerMinuten(),
-                    saalId
-            );
-            created.add(v);
-        }
-
-        // Konvertiere die erstellten Vorstellungen in DTOs (zum Beispiel)
-        List<VorstellungDTO> responseDtos = created.stream()
-                .map(v -> new VorstellungDTO(
-                        v.getId(),
-                        v.getSaal().getId(),
-                        v.getFilmTitel(),
-                        v.getStartzeit().toString(),
-                        v.getDauerMinuten()
-                ))
-                .collect(Collectors.toList());
-
-        return ResponseEntity.ok(responseDtos);
     }
 
 

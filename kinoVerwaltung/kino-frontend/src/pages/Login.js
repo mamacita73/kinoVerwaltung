@@ -25,6 +25,9 @@ function Login() {
 
 
             if (result.success === "true") {
+                // E-Mail in localStorage speichern für Weiterverwendung
+                localStorage.setItem("loggedInEmail", email);
+
                 setMessage("Login erfolgreich!");
 
                 if (result.rolle === "ADMIN") {

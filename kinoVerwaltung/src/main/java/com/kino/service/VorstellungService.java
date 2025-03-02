@@ -1,5 +1,6 @@
 package com.kino.service;
 
+import com.kino.dto.MultiVorstellungenDTO;
 import com.kino.entity.Saal;
 import com.kino.entity.Vorstellung;
 import com.kino.repository.SaalRepository;
@@ -9,6 +10,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalTime;
+import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -44,17 +46,64 @@ public class VorstellungService {
         Saal saal = saalRepository.findById(saalId)
                 .orElseThrow(() -> new RuntimeException("Saal mit ID " + saalId + " nicht gefunden!"));
 
-        // Neue Vorstellung erstellen und Felder setzen
+        //  Neue Zeiten bestimmen
+        LocalTime newStart = LocalTime.parse(startzeitStr);        // z.B. "16:00" -> 16:00
+        LocalTime newEnd = newStart.plusMinutes(dauerMinuten);     // z.B. 16:00 + 90 = 17:30
+
+        //  Alle existierenden Vorstellungen in diesem Saal laden
+        List<Vorstellung> existing = vorstellungRepository.findBySaalId(saalId);
+
+        //  Zeit-Überlappung prüfen
+        for (Vorstellung v : existing) {
+            LocalTime existingStart = v.getStartzeit();
+            LocalTime existingEnd = existingStart.plusMinutes(v.getDauerMinuten());
+
+            // Prüfe, ob (newStart, newEnd) sich mit (existingStart, existingEnd) überschneidet:
+            // Das ist der Fall, wenn newStart < existingEnd und newEnd > existingStart
+            // (d.h. das Zeitintervall überlappt sich)
+            boolean overlap = newStart.isBefore(existingEnd) && newEnd.isAfter(existingStart);
+            if (overlap) {
+                throw new RuntimeException(
+                        "Konflikt: In Saal " + saal.getName() +
+                                " findet bereits eine Vorstellung (" + v.getFilmTitel() +
+                                ") von " + existingStart + " bis " + existingEnd + " statt!"
+                );
+            }
+        }
+
+        //  Wenn kein Konflikt, Vorstellung anlegen
         Vorstellung vorstellung = new Vorstellung();
         vorstellung.setFilmTitel(filmTitel);
-        // Konvertiere den String (z.B. "16:00") in LocalTime
-        vorstellung.setStartzeit(LocalTime.parse(startzeitStr));
+        vorstellung.setStartzeit(newStart);
         vorstellung.setDauerMinuten(dauerMinuten);
         vorstellung.setSaal(saal);
 
-        // Persistieren und zurückgeben
         Vorstellung saved = vorstellungRepository.save(vorstellung);
         System.out.println("=== [VorstellungService] Vorstellung gespeichert mit ID " + saved.getId() + " ===");
         return saved;
+    }
+
+
+    // Mehrfache Vorstellungen anlegen
+    @Transactional
+    public List<Vorstellung> anlegenMehrereVorstellungen(MultiVorstellungenDTO dto) {
+        if (dto.getSaalIds().size() != dto.getStartzeiten().size()) {
+            throw new RuntimeException("Anzahl Säle und Startzeiten muss übereinstimmen!");
+        }
+
+        List<Vorstellung> result = new ArrayList<>();
+        for (int i = 0; i < dto.getSaalIds().size(); i++) {
+            Long saalId = dto.getSaalIds().get(i);
+            String startzeitStr = dto.getStartzeiten().get(i);
+
+            Vorstellung v = anlegenVorstellung(
+                    dto.getFilmTitel(),
+                    startzeitStr,
+                    dto.getDauerMinuten(),
+                    saalId
+            );
+            result.add(v);
+        }
+        return result;
     }
 }

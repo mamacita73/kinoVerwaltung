@@ -56,10 +56,13 @@ const MultiVorstellungAnlegen = () => {
         const startzeiten = auffuehrungen.map(a => a.startzeit);
 
         const payload = {
-            filmTitel,
-            dauerMinuten,
-            saalIds,
-            startzeiten
+            command: "VORSTELLUNG_MULTI_WRITE",
+                payload: {
+                    filmTitel,
+                    dauerMinuten,
+                    saalIds,
+                     startzeiten
+            }
         };
 
         console.log("Sende MultiVorstellung Payload:", payload);
@@ -71,8 +74,11 @@ const MultiVorstellungAnlegen = () => {
                 body: JSON.stringify(payload)
             });
             if (!response.ok) {
-                throw new Error("Fehler beim Anlegen der Vorstellungen");
+                // Fehler aus dem Body lesen
+                const serverError = await response.text();
+                throw new Error(serverError || "Fehler beim Anlegen der Vorstellungen");
             }
+
             const result = await response.json();
             console.log("Vorstellungen erfolgreich angelegt:", result);
             setMessage("Vorstellungen wurden erfolgreich angelegt!");
@@ -140,7 +146,7 @@ const MultiVorstellungAnlegen = () => {
                         Speichern
                     </button>
                 </div>
-                {message && <p>{message}</p>}
+                {message && <p style={{ color: "red" }}p>{message}</p>}
             </div>
         </div>
     );

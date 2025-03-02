@@ -10,13 +10,21 @@ const TicketReservierung = () => {
     const [message, setMessage] = useState("");
 
     const kategorien = ["PARKETT", "LOGE", "LOGE_SERVICE"];
-    const [kundenEmail, setKundenEmail] = useState("");
+    // Kunden-E-Mail aus dem localStorage laden
+    const [kundenEmail, setKundenEmail] = useState(() => {
+        return localStorage.getItem("loggedInEmail") || "";
+    });
     const [reservierungsnummer, setReservierungsnummer] = useState("");
     const [verfügbar, setVerfügbar] = useState({
         PARKETT: 0,
         LOGE: 0,
         LOGE_SERVICE: 0
     });
+
+    useEffect(() => {
+        const email = localStorage.getItem("loggedInEmail") || "";
+        setKundenEmail(email);
+    }, []);
 
     // Alle Vorstellungen
     useEffect(() => {
@@ -28,7 +36,7 @@ const TicketReservierung = () => {
             );
     }, []);
 
-    // 2) Fetch availability for the selected Vorstellung
+    // pürfen ob verfübgar
     useEffect(() => {
         if (!vorstellungId) {
             setVerfügbar({ PARKETT: 0, LOGE: 0, LOGE_SERVICE: 0 });
@@ -48,18 +56,20 @@ const TicketReservierung = () => {
             command: "RESERVIERUNG_WRITE",
             payload: {
                 vorstellungId: parseInt(vorstellungId, 10),
-                kategorie: kategorie,
+                kategorie,
                 anzahl: parseInt(anzahl, 10),
-                kundenEmail,
+                kundenEmail, // aus dem localstorage
                 datum: "2025-03-02",
                 status: "RESERVIERT"
             }
         };
 
         try {
-            const response = await fetch("http://localhost:8080/reservierung", {
+            const response = await fetch("http://localhost:8080/reservierung/anlegen", {
                 method: "POST",
-                headers: { "Content-Type": "application/json" },
+                headers: { "Content-Type": "application/json",
+                    "X-User-Email": kundenEmail
+                },
                 body: JSON.stringify(payload),
             });
             if (!response.ok) {
@@ -83,6 +93,14 @@ const TicketReservierung = () => {
             <h2>Tickets reservieren</h2>
 
             <div className="form-grid-tr">
+                <label>Kunden-E-Mail:</label>
+                <input
+                    type="email"
+                    value={kundenEmail}
+                    onChange={(e) => setKundenEmail(e.target.value)}
+                    readOnly
+                />
+
                 <label>Vorstellung wählen:</label>
                 <select
                     value={vorstellungId}
@@ -104,7 +122,7 @@ const TicketReservierung = () => {
                         </option>
                     ))}
                 </select>
-                <div style={{ gridColumn: "1 / span 2", margin: "0.5rem 0" }}>
+                <div style={{gridColumn: "1 / span 2", margin: "0.5rem 0"}}>
                     <strong>Freie Plätze ({kategorie}): </strong>
                     {verfügbar[kategorie]}
                 </div>

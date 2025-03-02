@@ -1,15 +1,24 @@
 package com.kino.controller;
 
+import com.kino.command.Command;
+import com.kino.command.CommandFactory;
 import com.kino.dto.ReservierungDTO;
 import com.kino.entity.Reservierung;
 import com.kino.entity.Vorstellung;
+import com.kino.messaging.AsyncCommandSender;
 import com.kino.repository.VorstellungRepository;
 import com.kino.service.ReservierungService;
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.context.request.RequestContextHolder;
+import org.springframework.web.context.request.ServletRequestAttributes;
 
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @RestController
@@ -19,6 +28,8 @@ public class ReservierungController {
     private ReservierungService reservierungService;
     @Autowired
     private VorstellungRepository vorstellungRepository;
+    @Autowired
+    private CommandFactory commandFactory;
 
 
     @GetMapping
@@ -28,48 +39,31 @@ public class ReservierungController {
     }
 
     // Endpoint zum Anlegen einer neuen Reservierung
-    @PostMapping
+    @PostMapping("/anlegen")
     @CrossOrigin
-    public ResponseEntity<ReservierungDTO> createReservierung(@RequestBody ReservierungDTO dto) {
-        Reservierung saved = reservierungService.createReservierung(dto);
+    public ResponseEntity<?> createReservierung(@RequestBody Map<String, Object> requestBody) {
+        try {
+            // Optional: E-Mail aus Header setzen, falls benötigt
+            String currentUserEmail = getCurrentUserEmail();
+            Map<String, Object> payload = (Map<String, Object>) requestBody.get("payload");
+            if (payload == null) {
+                payload = new HashMap<>();
+            }
+            // Überschreibe oder setze kundenEmail im Payload
+            payload.put("kundenEmail", currentUserEmail);
+            requestBody.put("payload", payload);
 
-        String email = (saved.getBenutzer() != null) ? saved.getBenutzer().getEmail() : null;
-        Long vorstellungId = (saved.getVorstellung() != null) ? saved.getVorstellung().getId() : null;
+            // Sende den Command asynchron über RabbitMQ
+            AsyncCommandSender.sendCommand("RESERVIERUNG_WRITE", payload);
 
-
-        // Baue das Antwort-DTO
-        ReservierungDTO response = new ReservierungDTO(
-                saved.getId(),
-                saved.getReservierungsnummer(),
-                saved.getDatum(),
-                saved.getStatus(),
-                email,
-                vorstellungId
-        );
-
-        return ResponseEntity.ok(response);
-    }
-
-    // Endpoint zum Abrufen einer Reservierung per ID
-    @GetMapping("/{id}")
-    @CrossOrigin
-    public ResponseEntity<ReservierungDTO> getReservierung(@PathVariable Long id) {
-        Reservierung reservierung = reservierungService.getReservierungById(id);
-
-        String email = (reservierung.getBenutzer() != null)
-                ? reservierung.getBenutzer().getEmail() : null;
-        Long vorstellungId = (reservierung.getVorstellung() != null)
-                ? reservierung.getVorstellung().getId() : null;
-
-        ReservierungDTO response = new ReservierungDTO(
-                reservierung.getId(),
-                reservierung.getReservierungsnummer(),
-                reservierung.getDatum(),
-                reservierung.getStatus(),
-                email,
-                vorstellungId
-        );
-        return ResponseEntity.ok(response);
+            Map<String, String> response = new HashMap<>();
+            response.put("success", "true");
+            response.put("message", "Reservierungs-Command gesendet.");
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.status(409).body(Collections.singletonMap("message", e.getMessage()));
+        }
     }
 
 
@@ -77,8 +71,15 @@ public class ReservierungController {
     @PutMapping("/{id}/cancel")
     @CrossOrigin
     public ResponseEntity<String> cancelReservierung(@PathVariable Long id) {
-        reservierungService.cancelReservierung(id);
-        return ResponseEntity.ok("Reservierung " + id + " wurde storniert.");
+        try {
+            Map<String, Object> payload = new HashMap<>();
+            payload.put("reservierungId", id);
+            AsyncCommandSender.sendCommand("RESERVIERUNG_CANCEL", payload);
+            return ResponseEntity.ok("Reservierungs-Cancellation-Command gesendet.");
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.status(409).body(e.getMessage());
+        }
     }
 
     // Optional: Alle Reservierungen eines Benutzers abrufen
@@ -103,4 +104,20 @@ public class ReservierungController {
 
         return ResponseEntity.ok(dtos);
     }
+
+    /**
+     * Ermittelt die E-Mail des aktuell eingeloggten Benutzers aus dem HTTP-Header.
+     */
+    private String getCurrentUserEmail() {
+        ServletRequestAttributes attr = (ServletRequestAttributes) RequestContextHolder.getRequestAttributes();
+        if (attr != null) {
+            HttpServletRequest request = attr.getRequest();
+            String email = request.getHeader("X-User-Email");
+            if (email != null && !email.isEmpty()) {
+                return email;
+            }
+        }
+        throw new RuntimeException("Kein eingeloggter Benutzer gefunden.");
+    }
+
 }

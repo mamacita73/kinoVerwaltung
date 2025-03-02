@@ -11,10 +11,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @RestController
@@ -39,32 +36,33 @@ public class SaalController {
 
     /**
      * POST: Neuen Saal anlegen.
-     * Erwartet ein JSON im Format des SaalDTO, z.B.:
+     * Das JSON erwartet das Format:
      * {
-     *   "name": "Saal 1",
-     *   "anzahlReihen": 3,
-     *   "istFreigegeben": true
+     *   "command": "SAAL_WRITE",
+     *   "payload": {
+     *       "name": "Saal 1",
+     *       "anzahlReihen": 3,
+     *       "istFreigegeben": true,
+     *       "sitzreihen": [ ... ]
+     *   }
      * }
      */
-    @PostMapping("/create")
+    @PostMapping("/anlegen")
     @CrossOrigin
-    public ResponseEntity<SaalDTO> createSaal(@RequestBody SaalDTO dto) {
-        // Saal-Entity aus dem DTO
-        Saal saal = new Saal();
-        saal.setName(dto.getName());
-        saal.setAnzahlReihen(dto.getAnzahlReihen());
-        saal.setIstFreigegeben(dto.isIstFreigegeben());
-        //Hier kann noch ein Standard-Kino gesetzt werden (z. B. per Service)
-        Saal saved = saalService.anlegenSaal(saal);
-
-        // Konvertiere das gespeicherte Entity in ein DTO
-        SaalDTO responseDto = new SaalDTO(
-                saved.getId(),
-                saved.getName(),
-                saved.getAnzahlReihen(),
-                saved.isIstFreigegeben()
-        );
-        return ResponseEntity.ok(responseDto);
+    public ResponseEntity<?> createSaal(@RequestBody Map<String, Object> requestBody) {
+        try {
+            // Sende den Command asynchron an RabbitMQ
+            AsyncCommandSender.sendCommand("SAAL_WRITE", (Map<String, Object>) requestBody.get("payload"));
+            // Rückmeldung, dass der Command gesendet wurde.
+            Map<String, String> response = new HashMap<>();
+            response.put("success", "true");
+            response.put("message", "Saal-Anlage-Command gesendet.");
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Collections.singletonMap("message", e.getMessage()));
+        }
     }
 
 
