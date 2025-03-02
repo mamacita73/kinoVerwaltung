@@ -28,6 +28,11 @@ public class VorstellungService {
         return vorstellungRepository.findByFilmTitel(filmTitel);
     }
 
+
+    public List<Vorstellung> getVorstellungenBySaal(Long saalId) {
+        return vorstellungRepository.findBySaalId(saalId);
+    }
+
     public Vorstellung saveVorstellung(Vorstellung vorstellung) {
         return vorstellungRepository.save(vorstellung);
     }

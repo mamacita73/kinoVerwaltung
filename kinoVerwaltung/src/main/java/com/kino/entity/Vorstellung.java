@@ -1,4 +1,5 @@
 package com.kino.entity;
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -30,9 +31,10 @@ public class Vorstellung {
     @Column(name = "dauer_minuten", nullable = false)
     private int dauerMinuten;
 
-    // Beziehung zum Saal (jeder Vorstellung ist ein Saal zugeordnet)
-    @ManyToOne(optional = false)
+    // Beziehung zum Saal
+    @ManyToOne(optional = false, fetch = FetchType.LAZY)
     @JoinColumn(name = "saal_id", nullable = false)
+    @JsonBackReference
     private Saal saal;
 
 

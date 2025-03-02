@@ -1,11 +1,14 @@
 import React, { useState } from "react";
 import "../styles/SaalAnlegen.css"; // Import der CSS-Datei
 
+import { useNavigate } from "react-router-dom";
+
 const SaalAnlegen = () => {
 
     const [saalName, setSaalName] = useState("");
     const [anzahlReihen, setAnzahlReihen] = useState(5);
     const kategorieOptionen = ["PARKETT", "LOGE", "LOGE_SERVICE"];
+    const navigate = useNavigate();
 
     const generateReihen = (count) => {
         return Array.from({ length: count }, (_, i) => ({
@@ -31,6 +34,9 @@ const SaalAnlegen = () => {
 
     const handleReihenUpdate = () => {
         setReihen(generateReihen(anzahlReihen));
+    };
+    const handleGoToFilmplanung = () => {
+        navigate("/FilmPlanung");
     };
 
     const handleSave = async () => {
@@ -105,34 +111,35 @@ const SaalAnlegen = () => {
                     <button className="button-s" onClick={handleReihenUpdate}>Reihen aktualisieren</button>
 
 
-                <div className="reihen-liste-s">
-                    {reihen.map((row, index) => (
-                        <div key={index} className="reihe-s">
-                            <span>{row.reihenBezeichnung}</span>
-                            <input
-                                className="input-s"
-                                type="number"
-                                placeholder="Anzahl Sitze"
-                                value={row.sitzeAnzahl}
-                                onChange={(e) => handleSitzeChange(index, e.target.value)}
-                                min="0"
-                            />
-                            <select
-                                value={row.kategorie}
-                                onChange={(e) => handleKategorieChange(index, e.target.value)}
-                            >
-                                <option value="">Kategorie wählen</option>
-                                {kategorieOptionen.map((kat, i) => (
-                                    <option key={i} value={kat}>
-                                        {kat}
-                                    </option>
-                                ))}
-                            </select>
-                        </div>
-                    ))}
+                    <div className="reihen-liste-s">
+                        {reihen.map((row, index) => (
+                            <div key={index} className="reihe-s">
+                                <span>{row.reihenBezeichnung}</span>
+                                <input
+                                    className="input-s"
+                                    type="number"
+                                    placeholder="Anzahl Sitze"
+                                    value={row.sitzeAnzahl}
+                                    onChange={(e) => handleSitzeChange(index, e.target.value)}
+                                    min="0"
+                                />
+                                <select
+                                    value={row.kategorie}
+                                    onChange={(e) => handleKategorieChange(index, e.target.value)}
+                                >
+                                    <option value="">Kategorie wählen</option>
+                                    {kategorieOptionen.map((kat, i) => (
+                                        <option key={i} value={kat}>
+                                            {kat}
+                                        </option>
+                                    ))}
+                                </select>
+                            </div>
+                        ))}
+                    </div>
+                    <button className="button-s" onClick={handleGoToFilmplanung}>Zurück</button>
+                    <button className="button-s" onClick={handleSave}>Speichern</button>
                 </div>
-                <button className="button-s" onClick={handleSave}>Speichern</button>
-             </div>
             </div>
         </div>
     );

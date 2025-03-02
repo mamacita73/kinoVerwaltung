@@ -1,6 +1,8 @@
 package com.kino.controller;
 
 import com.kino.dto.SaalDTO;
+import com.kino.dto.SaeleMitVorstellungenDTO;
+import com.kino.dto.VorstellungDTO;
 import com.kino.entity.Saal;
 import com.kino.messaging.AsyncCommandSender;
 import com.kino.service.SaalService;
@@ -13,6 +15,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/saal")
@@ -60,5 +63,36 @@ public class SaalController {
                 saved.isIstFreigegeben()
         );
         return ResponseEntity.ok(responseDto);
+    }
+
+
+    //  Alle Säle + Vorstellungen
+    @GetMapping("/mitVorstellungen")
+    public ResponseEntity<List<SaeleMitVorstellungenDTO>> getSaeleMitVorstellungen() {
+        List<Saal> saele = saalService.getAllSaeleMitVorstellungen();
+
+        // Umwandeln in DTOs
+        List<SaeleMitVorstellungenDTO> dtos = saele.stream().map(saal -> {
+            // VorstellungDTOs erzeugen
+            List<VorstellungDTO> vDtos = saal.getVorstellungen().stream()
+                    .map(v -> new VorstellungDTO(
+                            v.getId(),
+                            saal.getId(),
+                            v.getFilmTitel(),
+                            v.getStartzeit().toString(),
+                            v.getDauerMinuten()
+                    ))
+                    .collect(Collectors.toList());
+
+            return new SaeleMitVorstellungenDTO(
+                    saal.getId(),
+                    saal.getName(),
+                    saal.getAnzahlReihen(),
+                    saal.isIstFreigegeben(),
+                    vDtos
+            );
+        }).collect(Collectors.toList());
+
+        return ResponseEntity.ok(dtos);
     }
 }

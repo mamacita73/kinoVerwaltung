@@ -1,34 +1,60 @@
-import React, { useState } from "react";
+
+import { useNavigate } from "react-router-dom";
 import "../styles/Filmplannung.css"; // Import der CSS-Datei
+import React, { useState, useEffect } from "react";
+
 
 const Filmplanung = () => {
-    const [saele, setSaele] = useState([
-        { id: 1, name: "Saal 1", film: "", start: "16:00", end: "17:30" },
-        { id: 2, name: "Saal 2", film: "", start: "", end: "" },
-    ]);
+    const [saele, setSaele] = useState([]);  // Hier speichern wir Säle + Vorstellungen
+    const navigate = useNavigate();
 
-    const filme = ["Film A", "Film B", "Film C"];
+    // Beim Laden der Komponente Säle + Vorstellungen laden
+    useEffect(() => {
+        fetch("http://localhost:8080/saal/mitVorstellungen")
+            .then((res) => res.json())
+            .then((data) => {
+                console.log("Geladene Säle:", data);
+                setSaele(data);
+            })
+            .catch((err) => console.error("Fehler beim Laden der Säle:", err));
+    }, []);
 
-    const handleFilmChange = (index, value) => {
-        const updatedSaele = [...saele];
-        updatedSaele[index].film = value;
-        setSaele(updatedSaele);
+    // Hilfsfunktion, um Endzeit zu berechnen
+    const calculateEndTime = (startStr, dauerMinuten) => {
+        // Startzeit z. B. "16:00" -> [16, 00]
+        const [hh, mm] = startStr.split(":");
+        let startTime = new Date();
+        startTime.setHours(hh);
+        startTime.setMinutes(mm);
+
+        // Dauer hinzufügen
+        startTime.setMinutes(startTime.getMinutes() + dauerMinuten);
+
+        // Ergebnis als HH:mm zurück
+        const endH = String(startTime.getHours()).padStart(2, "0");
+        const endM = String(startTime.getMinutes()).padStart(2, "0");
+        return `${endH}:${endM}`;
+    };
+
+    // Navigation zu SaalAnlegen
+    const handleGoToSaalAnlegen = () => {
+        navigate("/SaalAnlegen");
+    };
+
+    // Navigation zu VorstellungAnlegen
+    const handleGoToVorstellungAnlegen = () => {
+        navigate("/VorstellungAnlegen");
     };
 
     return (
         <div className="container-p">
             <h2>Filmplanung</h2>
 
-            {/* Wrapper für Buttons + Tabelle */}
             <div className="layout-p">
-                {/* Buttons links */}
 
 
-
-
-                {/* Tabelle rechts */}
                 <div className="saal-container-p">
-                    <h3>Vorhandene Säle: <span className="bearbeiten">Bearbeiten</span></h3>
+                    <h3>Vorhandene Säle:</h3>
                     <table className="table">
                         <thead>
                         <tr>
@@ -39,31 +65,38 @@ const Filmplanung = () => {
                         </tr>
                         </thead>
                         <tbody>
-                        {saele.map((saal, index) => (
-                            <tr key={saal.id}>
-                                <td>{saal.name}</td>
-                                <td>
-                                    <select
-                                        value={saal.film}
-                                        onChange={(e) => handleFilmChange(index, e.target.value)}
-                                        className="select"
-                                    >
-                                        <option value="">Filme</option>
-                                        {filme.map((film, i) => (
-                                            <option key={i} value={film}>
-                                                {film}
-                                            </option>
-                                        ))}
-                                    </select>
-                                </td>
-                                <td>{saal.start}</td>
-                                <td>{saal.end}</td>
-                            </tr>
-                        ))}
+                        {saele.map((s) =>
+                            // Wenn der Saal Vorstellungen hat, jede Vorstellung in eigener Zeile
+                            s.vorstellungen && s.vorstellungen.length > 0 ? (
+                                s.vorstellungen.map((v) => (
+                                    <tr key={v.id}>
+                                        <td>{s.name}</td>
+                                        <td>{v.filmTitel}</td>
+                                        <td>{v.startzeit}</td>
+                                        <td>{calculateEndTime(v.startzeit, v.dauerMinuten)}</td>
+                                    </tr>
+                                ))
+                            ) : (
+                                // Falls keine Vorstellung vorhanden
+                                <tr key={s.id}>
+                                    <td>{s.name}</td>
+                                    <td>-</td>
+                                    <td>-</td>
+                                    <td>-</td>
+                                </tr>
+                            )
+                        )}
                         </tbody>
                     </table>
-                    <button className="button-p">Saal anlegen</button>
-                    <button className="button-p">Film Dashboard</button>
+
+
+                    <button className="button-p" onClick={handleGoToSaalAnlegen}>
+                        Saal anlegen
+                    </button>
+                    <button className="button-p" onClick={handleGoToVorstellungAnlegen}>
+                        Vorstellung anlegen
+                    </button>
+
                 </div>
             </div>
         </div>

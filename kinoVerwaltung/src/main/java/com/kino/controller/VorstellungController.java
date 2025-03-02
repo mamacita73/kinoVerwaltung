@@ -1,20 +1,15 @@
 package com.kino.controller;
 
 import com.kino.dto.VorstellungDTO;
-import com.kino.entity.Saal;
 import com.kino.entity.Vorstellung;
-import com.kino.messaging.AsyncCommandSender;
 import com.kino.repository.SaalRepository;
 import com.kino.service.VorstellungService;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.stream.Collectors;
 
 @RestController
@@ -74,4 +69,6 @@ public class VorstellungController {
 
         return ResponseEntity.ok(dtos);
     }
+
+
 }

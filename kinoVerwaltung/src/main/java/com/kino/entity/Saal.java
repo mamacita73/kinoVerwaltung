@@ -2,9 +2,11 @@ package com.kino.entity;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Entity
@@ -38,5 +40,10 @@ public class Saal {
     @OneToMany(mappedBy = "saal", cascade = CascadeType.ALL)
     @JsonIgnore
     private List<Sitzreihe> sitzreihen;
+
+    // Bidirektionale Beziehung zu Vorstellung
+    @OneToMany(mappedBy = "saal", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @JsonManagedReference  // Verhindert Endlosschleifen beim Serialisieren
+    private List<Vorstellung> vorstellungen = new ArrayList<>();
 
 }

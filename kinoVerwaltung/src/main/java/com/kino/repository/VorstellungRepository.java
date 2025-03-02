@@ -10,4 +10,7 @@ import java.util.List;
 @Repository
 public interface VorstellungRepository extends JpaRepository<Vorstellung, Long> {
     List<Vorstellung> findByFilmTitel(String filmTitel);
+
+    // Alle Vorstellungen in einem Saal
+    List<Vorstellung> findBySaalId(Long saalId);
 }

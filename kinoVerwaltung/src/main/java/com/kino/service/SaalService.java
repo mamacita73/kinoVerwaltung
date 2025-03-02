@@ -37,6 +37,11 @@ public class SaalService {
         saalRepository.deleteById(id);
     }
 
+    // NEU: Lädt alle Säle + Vorstellungen per JOIN FETCH
+    public List<Saal> getAllSaeleMitVorstellungen() {
+        return saalRepository.findAllSaeleMitVorstellungen();
+    }
+
     //  Anlegen eines neuen Saals inkl. Sitzreihen und Sitzen
     @Transactional
     public Saal anlegenSaal(Saal saal) {

@@ -8,10 +8,7 @@ import com.kino.service.VorstellungService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 
 @Component
 public class CommandFactory {
@@ -83,17 +80,119 @@ public class CommandFactory {
             case "RESERVIERUNG_WRITE":
                 // Erstelle eine neue Reservierung
                 return new GenericCommand<Reservierung>(() -> {
+                    System.out.println("=== [CommandFactory] Erstelle RESERVIERUNG_WRITE-Command ===");
+
+                    // Payload entnehmen
+                    Map<String, Object> innerPayload = (Map<String, Object>) payload.get("payload");
+                    if (innerPayload == null) {
+                        innerPayload = payload;
+                    }
+
+                    // Felder auslesen
+                    Long vorstellungId = ((Number) innerPayload.get("vorstellungId")).longValue();
+                    String kategorie = (String) innerPayload.get("kategorie");  // "PARKETT", "LOGE", ...
+                    int anzahl = ((Number) innerPayload.get("anzahl")).intValue();
+                    String kundenEmail = (String) innerPayload.get("kundenEmail");
+                    String datum = (String) innerPayload.getOrDefault("datum", "2025-03-02");
+                    String status = (String) innerPayload.getOrDefault("status", "RESERVIERT");
+
+                    // Vorstellung laden
+                    Vorstellung vorstellung = vorstellungRepository.findById(vorstellungId)
+                            .orElseThrow(() -> new RuntimeException("Vorstellung nicht gefunden: ID=" + vorstellungId));
+
+                    // Saal ermitteln
+                    Saal saal = vorstellung.getSaal();
+                    if (saal == null) {
+                        throw new RuntimeException("Vorstellung hat keinen Saal!");
+                    }
+
+
+                    // Sitzplatz-Prüfung:
+                    // Alle Sitzreihen in diesem Saal laden
+                    // Alle Sitze filtern, die kategorie == gewählte Kategorie && status == FREI
+                    // Prüfen, ob anzahl <= anzahlFreieSitze
+                    // Falls genug frei, setze SITZstatus = RESERVIERT bei 'anzahl' Sitzen
+                    int seatsFound = 0;
+                    List<Sitz> reservierteSitze = new ArrayList<>();
+
+                    for (Sitzreihe sr : saal.getSitzreihen()) {
+                        for (Sitz sitz : sr.getSitze()) {
+                            if (sitz.getKategorie().name().equals(kategorie) && sitz.getStatus() == Sitzstatus.FREI) {
+                                // Diesen Sitz reservieren
+                                sitz.setStatus(Sitzstatus.RESERVIERT);
+                                reservierteSitze.add(sitz);
+                                seatsFound++;
+                                if (seatsFound == anzahl) break; // genug gefunden
+                            }
+                        }
+                        if (seatsFound == anzahl) break;
+                    }
+
+                    if (seatsFound < anzahl) {
+                        for (Sitz s : reservierteSitze) {
+                            s.setStatus(Sitzstatus.FREI);
+                        }
+                        throw new RuntimeException("Nicht genug freie Plätze in Kategorie " + kategorie);
+                    }
+
+                    // ReservierungSitz-Einträge
+                    List<ReservierungSitz> reservierungSitze = new ArrayList<>();
+                    for (Sitz s : reservierteSitze) {
+                        ReservierungSitz rs = new ReservierungSitz();
+                        rs.setSitz(s);
+                        // rs.setReservierung wird später gesetzt
+                        reservierungSitze.add(rs);
+                    }
+
+
+                    // Benutzer laden
+                    Benutzer benutzer = benutzerRepository.findByEmail(kundenEmail)
+                            .orElseThrow(() -> new RuntimeException("Benutzer nicht gefunden: email=" + kundenEmail));
+
+                    // Neue Reservierung anlegen
                     Reservierung reservierung = new Reservierung();
 
-                    reservierung.setBenutzer((Benutzer) payload.get("kundenName"));
-                    reservierung.setVorstellung((Vorstellung) payload.get("vorstellung"));
-                    reservierung.setId((Long) payload.get("id"));
-                    reservierung.setReservierungsnummer((String) payload.get("reservierungsNummer"));
-                    reservierung.setStatus((String) payload.get("status"));
-                    reservierung.setDatum((String) payload.get("datum"));
+                    String fiveDigitNumber = String.format("%05d", new Random().nextInt(100000));
+                    reservierung.setReservierungsnummer(fiveDigitNumber);
 
-                    return reservierungRepository.save(reservierung);
+                    reservierung.setDatum(datum);
+                    reservierung.setStatus(status);
+                    reservierung.setBenutzer(benutzer);
+                    reservierung.setVorstellung(vorstellung);
+
+                    // Setze in jeden ReservierungSitz die Referenz zur Reservierung
+                    for (ReservierungSitz rs : reservierungSitze) {
+                        rs.setReservierung(reservierung);
+                    }
+                    // Setze die Liste in die Reservierung
+                    reservierung.setReservierungSitze(reservierungSitze);
+
+                    // Speichern
+                    Reservierung savedRes = reservierungRepository.save(reservierung);
+
+                    System.out.println("=== [CommandFactory] Reservierung gespeichert, ID: " + savedRes.getId() + " ===");
+                    return savedRes;
                 });
+
+            case "RESERVIERUNG_CANCEL":
+                return new GenericCommand<String>(() -> {
+                    Long reservierungId = ((Number) payload.get("reservierungId")).longValue();
+                    Reservierung r = reservierungRepository.findById(reservierungId)
+                            .orElseThrow(() -> new RuntimeException("Reservierung nicht gefunden"));
+
+                    // 1) Sitze freigeben, die in dieser Reservierung "RESERVIERT" wurden
+                    //   -> Hier müsstest du in einer realen App Sitzbelegungen pro Vorstellung führen
+                    //   oder den Sitzstatus + Vorstellungsbezug tracken.
+                    //   Da das Beispiel kein Sitz->Vorstellung hat,
+                    //   müsstest du ggf. "RESERVIERUNG" die Sitze mappen. (Fehlt im Modell.)
+
+                    // 2) Reservierung auf "STORNIERT" setzen oder löschen
+                    r.setStatus("STORNIERT");
+                    reservierungRepository.save(r);
+
+                    return "Reservierung " + r.getId() + " wurde storniert.";
+                });
+
 
             case "SAAL_WRITE":
                 return new GenericCommand<Saal>(() -> {

@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from "react";
 import "../styles/VorstellungAnlegen.css"
+import {useNavigate} from "react-router-dom";
+
 
 const VorstellungAnlegen = () => {
 
@@ -9,6 +11,7 @@ const VorstellungAnlegen = () => {
     const [startzeit, setStartzeit] = useState("");
     const [dauerMinuten, setDauerMinuten] = useState(90);
     const [message, setMessage] = useState("");
+    const navigate = useNavigate();
 
 
     // Säle laden
@@ -22,6 +25,10 @@ const VorstellungAnlegen = () => {
             .catch((err) => console.error("Fehler beim Laden der Säle:", err));
     }, []);
 
+
+    const handleGoToFilmplanung = () => {
+        navigate("/FilmPlanung");
+    };
 
     const handleSave = async () => {
         const payload = {
@@ -61,49 +68,49 @@ return (
     <div className="vorstellung-container-v">
         <h2>Vorstellung anlegen</h2>
         <div className="vorstellung-form-v">
-        <div className="form-row">
-            <label>Saal wählen:</label>
-            <select value={saalId} onChange={(e) => setSaalId(e.target.value)}>
-                <option value="">-- Bitte wählen --</option>
-                {saele.map((s) => (
-                    <option key={s.id} value={s.id}>
-                        {s.name} (ID={s.id})
-                    </option>
-                ))}
-            </select>
-        </div>
+            <div className="form-row">
+                <label>Saal wählen:</label>
+                <select value={saalId} onChange={(e) => setSaalId(e.target.value)}>
+                    <option value="">-- Bitte wählen --</option>
+                    {saele.map((s) => (
+                        <option key={s.id} value={s.id}>
+                            {s.name} (ID={s.id})
+                        </option>
+                    ))}
+                </select>
+            </div>
 
-        <div className="form-row">
-            <label>Filmtitel:</label>
-            <input
-                value={filmTitel}
-                onChange={(e) => setFilmTitel(e.target.value)}
-                placeholder="Name des Films"
-            />
-        </div>
+            <div className="form-row">
+                <label>Filmtitel:</label>
+                <input
+                    value={filmTitel}
+                    onChange={(e) => setFilmTitel(e.target.value)}
+                    placeholder="Name des Films"
+                />
+            </div>
 
-        <div className="form-row">
-            <label>Startzeit:</label>
-            <input
-                value={startzeit}
-                onChange={(e) => setStartzeit(e.target.value)}
-                placeholder="z.B. 16:00"
-            />
-        </div>
+            <div className="form-row">
+                <label>Startzeit:</label>
+                <input
+                    value={startzeit}
+                    onChange={(e) => setStartzeit(e.target.value)}
+                    placeholder="z.B. 16:00"
+                />
+            </div>
 
-        <div className="form-row">
-            <label>Filmdauer (Min.):</label>
-            <input
-                type="number"
-                value={dauerMinuten}
-                onChange={(e) => setDauerMinuten(parseInt(e.target.value, 10) || 0)}
-            />
+            <div className="form-row">
+                <label>Filmdauer (Min.):</label>
+                <input
+                    type="number"
+                    value={dauerMinuten}
+                    onChange={(e) => setDauerMinuten(parseInt(e.target.value, 10) || 0)}
+                />
+            </div>
+            <button className="button-v" onClick={handleGoToFilmplanung}>Zurück</button>
+            <button className="button-v" onClick={handleSave}>
+                Speichern
+            </button>
         </div>
-
-        <button className="button-v" onClick={handleSave}>
-            Speichern
-        </button>
-    </div>
     </div>
 );
 };
