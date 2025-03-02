@@ -68,10 +68,10 @@ public class VorstellungController {
     }
 
 
-    // Return how many free seats per category for the given Vorstellung
     @GetMapping("/{id}/verfügbar")
     @CrossOrigin
     public Map<String, Integer> getVerfügbarkeit(@PathVariable Long id) {
+        System.out.println("Abgefragte Vorstellung-ID: " + id);
         Vorstellung vorstellung = vorstellungRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Vorstellung nicht gefunden, ID=" + id));
 

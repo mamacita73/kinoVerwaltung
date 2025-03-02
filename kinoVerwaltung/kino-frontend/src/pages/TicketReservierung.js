@@ -1,6 +1,7 @@
 
 import "../styles/TicketReservierung.css"; // Import der CSS-Datei
 import React, { useState, useEffect } from "react";
+import {useNavigate} from "react-router-dom";
 
 const TicketReservierung = () => {
     const [vorstellungen, setVorstellungen] = useState([]);
@@ -8,6 +9,7 @@ const TicketReservierung = () => {
     const [kategorie, setKategorie] = useState("PARKETT");
     const [anzahl, setAnzahl] = useState(1);
     const [message, setMessage] = useState("");
+    const navigate = useNavigate();
 
     const kategorien = ["PARKETT", "LOGE", "LOGE_SERVICE"];
     // Kunden-E-Mail aus dem localStorage laden
@@ -20,6 +22,10 @@ const TicketReservierung = () => {
         LOGE: 0,
         LOGE_SERVICE: 0
     });
+
+    const handleZuReservierungen = () => {
+        navigate("/ReservierungDashboard");
+    };
 
     useEffect(() => {
         const email = localStorage.getItem("loggedInEmail") || "";
@@ -82,6 +88,15 @@ const TicketReservierung = () => {
                 setReservierungsnummer(result.reservierungsnummer);
             }
 
+            // **Neue Verfügbarkeit laden**, damit die Anzeige aktualisiert wird
+            // (nur falls eine Vorstellung gewählt ist)
+            if (vorstellungId) {
+                const verfuegbarRes = await fetch(
+                    `http://localhost:8080/vorstellung/${vorstellungId}/verfügbar`
+                );
+                const verfuegbarData = await verfuegbarRes.json();
+                setVerfügbar(verfuegbarData);
+            }
         } catch (error) {
             console.error("Fehler:", error);
             setMessage("Fehler beim Reservieren: " + error.message);
@@ -142,9 +157,10 @@ const TicketReservierung = () => {
 
             <div className="reservierung-footer-tr">
                 <label>Reservierungsnummer:</label>
-                <input type="text" value={reservierungsnummer} readOnly />
+                <input type="text" value={reservierungsnummer} readOnly/>
 
                 <button className="button-tr" onClick={handleReservierung}>Reservieren</button>
+                <button className="button-tr" onClick={handleZuReservierungen}>zu den Reservierungen</button>
             </div>
         </div>
     );
