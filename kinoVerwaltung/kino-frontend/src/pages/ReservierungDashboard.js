@@ -2,35 +2,38 @@ import React, { useState } from "react";
 import "../styles/ReservierungDashboard.css"; // Import der allgemeinen CSS-Datei
 
 const Reservierung = () => {
-    const [reservierungsnummer] = useState(27698);
-    const [anzahl] = useState(5);
-    const [film] = useState("Herr der Stieben");
-    const [start] = useState("16:00");
-    const [ende] = useState("17:30");
-    const [status] = useState("offen");
+    const [reservierungen, setReservierungen] = useState([]);
+    const [email, setEmail] = useState(() => localStorage.getItem("loggedInEmail") || "");
+
+    useEffect(() => {
+        if (!email) return;
+        fetch(`http://localhost:8080/reservierung/byEmail/${email}`)
+            .then((res) => res.json())
+            .then((data) => setReservierungen(data))
+            .catch((err) => console.error("Fehler beim Laden der Reservierungen:", err));
+    }, [email]);
 
     return (
         <div className="reservierung-container-rd">
             <h2>Reservierung</h2>
 
             <div className="form-grid-rd">
-                <label className="label-rd">Reservierungsnummer:</label>
-                <input type="text" value={reservierungsnummer} readOnly className="input-rd"/>
 
-                <label className="label-rd">Anzahl:</label>
-                <input type="number" value={anzahl} readOnly className="input-rd"/>
+                {reservierungen.map((res) => (
+                    <div key={res.id} className="reservierung-item">
+                        <p>Reservierungsnummer: {res.reservierungsnummer}</p>
+                        <p>Anzahl: {res.anzahl}</p>
+                        <p>Status: {res.status}</p>
+                        <p>Vorstellung: {res.vorstellungId}</p>
+                        <p>Start: {res.star}</p>
+                        <p>Ende: {res.ended}</p>  {/* falsch, muss aus start und dauer berechnet werden */}
+                        <p>Start: {res.star}</p>
 
-                <label className="label-rd">Film:</label>
-                <input type="text" value={film} readOnly className="input-rd"/>
+                        {/* Hier können weitere Details wie Film, Startzeit etc. angezeigt werden */}
 
-                <label className="label-rd">Start:</label>
-                <input type="text" value={start} readOnly className="input-rd"/>
+                    </div>
+                ))}
 
-                <label className="labe-rdl">Ende:</label>
-                <input type="text" value={ende} readOnly className="input-rd"/>
-
-                <label className="label-rd">Status:</label>
-                <input type="text" value={status} readOnly className="input-rd"/>
             </div>
 
             <div className="footer-rd">

@@ -4,7 +4,7 @@ public interface Command<R> {
     /**
      * Führt die Operation aus und speichert das Ergebnis oder eine Exception.
      */
-    void execute();
+    R execute();
 
     /**
      * Gibt das Ergebnis der Operation zurück oder wirft eine Exception, falls die

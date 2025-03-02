@@ -1,6 +1,8 @@
 package com.kino.controller;
 
 
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.kino.dto.VorstellungDTO;
 import com.kino.entity.Saal;
 import com.kino.entity.Sitz;
@@ -12,6 +14,7 @@ import com.kino.repository.VorstellungRepository;
 import com.kino.service.VorstellungService;
 
 import kinoVerwaltung.Sitzstatus;
+import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -22,81 +25,121 @@ import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/vorstellung")
+@CrossOrigin
 public class VorstellungController {
 
     @Autowired
-    private VorstellungService vorstellungService;
-    @Autowired
     private VorstellungRepository vorstellungRepository;
+
     @Autowired
-    private SaalRepository saalRepository;
+    private RabbitTemplate rabbitTemplate;
+    @Autowired
+    private ObjectMapper objectMapper;
 
 
-    // POST: Mehrfache Vorstellungen anlegen (asynchron über RabbitMQ)
+    /**
+     * POST: Mehrfache Vorstellungen anlegen.
+     * Erwartetes JSON-Format:
+     * {
+     *   "command": "VORSTELLUNG_MULTI_WRITE",
+     *   "payload": {
+     *       "filmTitel": "Film X",
+     *       "saalIds": [1,2],
+     *       "startzeiten": ["16:00", "18:00"],
+     *       "dauerMinuten": 90
+     *   }
+     * }
+     * Diese Operation wird asynchron über RabbitMQ gesendet.
+     */
     @PostMapping("/anlegenMulti")
-    @CrossOrigin
     public ResponseEntity<?> createMultiVorstellung(@RequestBody Map<String, Object> requestBody) {
         try {
-            // Erwartetes Format:
-            // { "command": "VORSTELLUNG_MULTI_WRITE", "payload": { "filmTitel": "...", "saalIds": [...], "startzeiten": [...], "dauerMinuten": 120 } }
-            AsyncCommandSender.sendCommand("VORSTELLUNG_MULTI_WRITE", (Map<String, Object>) requestBody.get("payload"));
+            // Extrahiere den "payload"-Teil (falls vorhanden)
+            Map<String, Object> payload = (Map<String, Object>) requestBody.get("payload");
+            if (payload == null) {
+                payload = requestBody;
+            }
+            // Sende den Command asynchron an RabbitMQ
+            AsyncCommandSender.sendCommand("VORSTELLUNG_MULTI_WRITE", payload);
             Map<String, String> response = Collections.singletonMap("message", "Multi-Vorstellungs-Command gesendet.");
             return ResponseEntity.ok(response);
         } catch (Exception e) {
             e.printStackTrace();
-            return ResponseEntity.status(HttpStatus.CONFLICT).body(Collections.singletonMap("message", e.getMessage()));
+            return ResponseEntity.status(HttpStatus.CONFLICT)
+                    .body(Collections.singletonMap("message", e.getMessage()));
         }
     }
 
 
-     /**
-     * GET: Alle Vorstellungen abrufen.
+    /**
+     * RPC-Endpoint: Alle Vorstellungen abrufen via RabbitMQ RPC.
+     *
+     * Es wird eine Nachricht an die Queue "rpcCommandQueue" gesendet mit dem Command-Typ "VORSTELLUNG_QUERY_ALL".
+     * Der RPC-Listener verarbeitet diesen Command (z.B. in der CommandFactory) und gibt die Liste der Vorstellungen als JSON‑String zurück.
      */
     @GetMapping
-    @CrossOrigin
-    public ResponseEntity<List<VorstellungDTO>> getAllVorstellungen() {
-        List<Vorstellung> list = vorstellungService.getAllVorstellungen();
-        List<VorstellungDTO> dtos = list.stream().map(v -> new VorstellungDTO(
-                v.getId(),
-                v.getSaal().getId(),
-                v.getFilmTitel(),
-                v.getStartzeit().toString(),
-                v.getDauerMinuten()
-        )).collect(Collectors.toList());
+    public ResponseEntity<?> getAllVorstellungen() {
+        try {
+            // Erstelle eine Message-Map, die den Command-Typ und einen leeren Payload enthält
+            Map<String, Object> messageMap = new HashMap<>();
+            messageMap.put("command", "VORSTELLUNG_QUERY_ALL");
+            messageMap.put("payload", new HashMap<String, Object>()); // Leerer Payload
 
-        return ResponseEntity.ok(dtos);
+            // Sende den RPC-Aufruf über RabbitTemplate an die Queue "rpcCommandQueue"
+            Object responseObj = rabbitTemplate.convertSendAndReceive("", "rpcCommandQueue", messageMap);
+
+            if (responseObj == null) {
+                throw new RuntimeException("Keine Antwort vom RPC erhalten!");
+            }
+
+            // Die Antwort wird als JSON-String erwartet. Dieser JSON-String soll in eine Liste von VorstellungDTOs umgewandelt werden.
+            String jsonResponse = responseObj.toString();
+            List<VorstellungDTO> dtos = objectMapper.readValue(jsonResponse, new TypeReference<List<VorstellungDTO>>() {});
+
+            return ResponseEntity.ok(dtos);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Collections.singletonMap("error", e.getMessage()));
+        }
     }
 
 
-    @GetMapping("/{id}/verfügbar")
-    @CrossOrigin
-    public Map<String, Integer> getVerfügbarkeit(@PathVariable Long id) {
-        System.out.println("Abgefragte Vorstellung-ID: " + id);
-        Vorstellung vorstellung = vorstellungRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Vorstellung nicht gefunden, ID=" + id));
+    /**
+     * GET: Verfügbarkeitsabfrage für eine Vorstellung per RPC über RabbitMQ.
+     * Erwartet einen Pfadparameter "id", der die ID der Vorstellung enthält.
+     * Sendet einen RPC-Aufruf mit dem Command "VORSTELLUNG_VERFUEGBAR".
+     */
+    @GetMapping("/{id}/verfuegbar")
+    public ResponseEntity<?> getVerfuegbarkeit(@PathVariable Long id) {
+        try {
+            // Erstelle eine Message-Map mit Command und Payload
+            Map<String, Object> messageMap = new HashMap<>();
+            messageMap.put("command", "VORSTELLUNG_VERFUEGBAR");
 
-        Saal saal = vorstellung.getSaal();
-        if (saal == null) {
-            throw new RuntimeException("Vorstellung hat keinen Saal!");
-        }
+            // Payload: Übergibt die Vorstellung-ID
+            Map<String, Object> payload = new HashMap<>();
+            payload.put("id", id);
+            messageMap.put("payload", payload);
 
-        // Initialize counters
-        Map<String, Integer> availability = new HashMap<>();
-        availability.put("PARKETT", 0);
-        availability.put("LOGE", 0);
-        availability.put("LOGE_SERVICE", 0);
-
-        // Loop through all Sitzreihen and Sitze to count how many are free per Kategorie
-        for (Sitzreihe sr : saal.getSitzreihen()) {
-            for (Sitz sitz : sr.getSitze()) {
-                if (sitz.getStatus().equals(Sitzstatus.FREI)) {
-                    String catName = sitz.getKategorie().name();  // e.g. "PARKETT", "LOGE", ...
-                    availability.put(catName, availability.get(catName) + 1);
-                }
+            // Sende synchron den RPC-Aufruf über RabbitTemplate an die Queue "rpcCommandQueue"
+            Object responseObj = rabbitTemplate.convertSendAndReceive("", "rpcCommandQueue", messageMap);
+            if (responseObj == null) {
+                throw new RuntimeException("Keine Antwort vom RPC erhalten!");
             }
-        }
 
-        return availability;
+            // Die Antwort wird als JSON-String erwartet.
+            String jsonResponse = responseObj.toString();
+            // Deserialisiere in eine Map<String, Integer>
+            Map<String, Integer> availability = objectMapper.readValue(
+                    jsonResponse, new TypeReference<Map<String, Integer>>() {});
+
+            return ResponseEntity.ok(availability);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Collections.singletonMap("error", e.getMessage()));
+        }
     }
 
 }

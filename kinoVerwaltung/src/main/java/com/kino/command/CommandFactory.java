@@ -2,6 +2,8 @@ package com.kino.command;
 
 
 import com.kino.dto.MultiVorstellungenDTO;
+import com.kino.dto.SaeleMitVorstellungenDTO;
+import com.kino.dto.VorstellungDTO;
 import com.kino.entity.*;
 import com.kino.repository.*;
 import com.kino.service.ReservierungService;
@@ -85,6 +87,9 @@ public class CommandFactory {
                     return Optional.empty();
                 });
 
+
+
+
             case "RESERVIERUNG_WRITE":
                 return new GenericCommand<Reservierung>(() -> {
                     System.out.println("=== [CommandFactory] Erstelle RESERVIERUNG_WRITE-Command ===");
@@ -115,6 +120,25 @@ public class CommandFactory {
                     return savedRes;
                 });
 
+            case "RESERVIERUNG_QUERY_BY_EMAIL":
+                return new GenericCommand<List<Reservierung>>(() -> {
+                    System.out.println("=== [CommandFactory] RESERVIERUNG_QUERY_BY_EMAIL ===");
+                    String email = (String) payload.get("kundenEmail");
+                    if (email == null || email.isEmpty()) {
+                        throw new RuntimeException("kundenEmail fehlt!");
+                    }
+                    // Rufe Service-Methode auf
+                    return reservierungService.getReservierungenByEmail(email);
+                });
+
+            case "RESERVIERUNG_BUCHEN":
+                return new GenericCommand<Buchung>(() -> {
+                    System.out.println("=== [CommandFactory] RESERVIERUNG_BUCHEN ===");
+                    String reservierungsNummer = (String) payload.get("reservierungsnummer");
+                    String zahlweise = (String) payload.getOrDefault("zahlweise", "PAYPAL");
+                    // ... Logik: reservierung → buchung
+                    return reservierungService.reservierungZuBuchung(reservierungsNummer, zahlweise);
+                });
 
             case "RESERVIERUNG_CANCEL":
                 return new GenericCommand<String>(() -> {
@@ -262,6 +286,66 @@ public class CommandFactory {
                 System.out.println("=== [CommandFactory] " + created.size() + " Vorstellungen erstellt ===");
                 return created;
             });
+
+            case "VORSTELLUNG_QUERY_ALL":
+                return new GenericCommand<List<Vorstellung>>(() -> {
+                    System.out.println("=== [CommandFactory] Erstelle VORSTELLUNG_QUERY_ALL-Command ===");
+                    List<Vorstellung> list = vorstellungRepository.findAll();
+                    return list;
+                });
+
+
+            case "VORSTELLUNG_VERFUEGBAR":
+                return new GenericCommand<Map<String, Integer>>(() -> {
+                    System.out.println("=== [CommandFactory] Erstelle VORSTELLUNG_VERFUEGBAR-Command ===");
+                    // Hole die Vorstellung anhand der ID aus dem Payload
+                    Long id = ((Number) payload.get("id")).longValue();
+                    Vorstellung vorstellung = vorstellungRepository.findById(id)
+                            .orElseThrow(() -> new RuntimeException("Vorstellung nicht gefunden, ID=" + id));
+                    // Hole den Saal und berechne die Verfügbarkeit
+                    Saal saal = vorstellung.getSaal();
+                    if (saal == null) {
+                        throw new RuntimeException("Vorstellung hat keinen Saal!");
+                    }
+                    Map<String, Integer> availability = new HashMap<>();
+                    availability.put("PARKETT", 0);
+                    availability.put("LOGE", 0);
+                    availability.put("LOGE_SERVICE", 0);
+                    for (Sitzreihe sr : saal.getSitzreihen()) {
+                        for (Sitz sitz : sr.getSitze()) {
+                            if (sitz.getStatus().equals(Sitzstatus.FREI)) {
+                                String catName = sitz.getKategorie().name();
+                                availability.put(catName, availability.get(catName) + 1);
+                            }
+                        }
+                    }
+                    return availability;
+                });
+
+
+            case "SAELE_MIT_VORSTELLUNGEN_QUERY":
+                return new GenericCommand<List<SaeleMitVorstellungenDTO>>(() -> {
+                    List<Saal> saele = saalService.getAllSaeleMitVorstellungen();
+                    List<SaeleMitVorstellungenDTO> dtos = saele.stream().map(saal -> {
+                        List<VorstellungDTO> vDtos = saal.getVorstellungen().stream()
+                                .map(v -> new VorstellungDTO(
+                                        v.getId(),
+                                        saal.getId(),
+                                        v.getFilmTitel(),
+                                        v.getStartzeit().toString(),
+                                        v.getDauerMinuten()
+                                ))
+                                .collect(Collectors.toList());
+                        return new SaeleMitVorstellungenDTO(
+                                saal.getId(),
+                                saal.getName(),
+                                saal.getAnzahlReihen(),
+                                saal.isIstFreigegeben(),
+                                vDtos
+                        );
+                    }).collect(Collectors.toList());
+                    return dtos;
+                });
 
             default:
                 throw new IllegalArgumentException("Unbekannter Command-Typ: " + commandType);

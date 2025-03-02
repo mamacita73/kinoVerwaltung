@@ -1,11 +1,14 @@
 package com.kino.controller;
 
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.kino.dto.SaalDTO;
 import com.kino.dto.SaeleMitVorstellungenDTO;
 import com.kino.dto.VorstellungDTO;
 import com.kino.entity.Saal;
 import com.kino.messaging.AsyncCommandSender;
 import com.kino.service.SaalService;
+import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -21,6 +24,12 @@ public class SaalController {
 
     @Autowired
     private SaalService saalService;
+
+    @Autowired
+    private RabbitTemplate rabbitTemplate;
+
+    @Autowired
+    private ObjectMapper objectMapper;
 
     @GetMapping
     @CrossOrigin
@@ -66,34 +75,35 @@ public class SaalController {
     }
 
 
-    //  Alle Säle + Vorstellungen
+    /**
+     * GET: Alle Säle + Vorstellungen via RPC-Aufruf über RabbitMQ.
+     */
     @GetMapping("/mitVorstellungen")
-    @CrossOrigin
-    public ResponseEntity<List<SaeleMitVorstellungenDTO>> getSaeleMitVorstellungen() {
-        List<Saal> saele = saalService.getAllSaeleMitVorstellungen();
+    public ResponseEntity<?> getSaeleMitVorstellungen() {
+        try {
+            // Erstelle eine Message-Map mit Command und Payload (Payload kann leer sein)
+            Map<String, Object> messageMap = new HashMap<>();
+            messageMap.put("command", "SAELE_MIT_VORSTELLUNGEN_QUERY");
+            messageMap.put("payload", new HashMap<String, Object>());
 
-        // Umwandeln in DTOs
-        List<SaeleMitVorstellungenDTO> dtos = saele.stream().map(saal -> {
-            // VorstellungDTOs erzeugen
-            List<VorstellungDTO> vDtos = saal.getVorstellungen().stream()
-                    .map(v -> new VorstellungDTO(
-                            v.getId(),
-                            saal.getId(),
-                            v.getFilmTitel(),
-                            v.getStartzeit().toString(),
-                            v.getDauerMinuten()
-                    ))
-                    .collect(Collectors.toList());
+            // Sende synchron den RPC-Aufruf an die Queue "rpcCommandQueue" (Default Exchange "")
+            Object responseObj = rabbitTemplate.convertSendAndReceive("", "rpcCommandQueue", messageMap);
+            if (responseObj == null) {
+                throw new RuntimeException("Keine Antwort vom RPC erhalten!");
+            }
 
-            return new SaeleMitVorstellungenDTO(
-                    saal.getId(),
-                    saal.getName(),
-                    saal.getAnzahlReihen(),
-                    saal.isIstFreigegeben(),
-                    vDtos
-            );
-        }).collect(Collectors.toList());
+            // responseObj wird als JSON-String erwartet
+            String jsonResponse = responseObj.toString();
 
-        return ResponseEntity.ok(dtos);
+            // Deserialisiere die Antwort in eine Liste von SaeleMitVorstellungenDTO
+            List<SaeleMitVorstellungenDTO> dtos = objectMapper.readValue(
+                    jsonResponse, new TypeReference<List<SaeleMitVorstellungenDTO>>() {});
+
+            return ResponseEntity.ok(dtos);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Collections.singletonMap("error", e.getMessage()));
+        }
     }
 }

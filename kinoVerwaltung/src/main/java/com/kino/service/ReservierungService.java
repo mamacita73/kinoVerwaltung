@@ -2,15 +2,13 @@ package com.kino.service;
 
 import com.kino.dto.ReservierungDTO;
 import com.kino.entity.*;
-import com.kino.repository.BenutzerRepository;
-import com.kino.repository.ReservierungRepository;
-import com.kino.repository.SaalRepository;
-import com.kino.repository.VorstellungRepository;
+import com.kino.repository.*;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.Random;
 
@@ -28,8 +26,12 @@ public class ReservierungService {
     @Autowired
     private SaalRepository saalRepository;
 
+    @Autowired
+    private BuchungRepository buchungRepository;
 
-    // Beispiel: Erstelle Reservierung
+    /**
+     * Legt eine neue Reservierung an, prüft die Sitzverfügbarkeit und reserviert die benötigten Sitze.
+     */
     @Transactional
     public Reservierung reservierungAnlegen(Long vorstellungId, String kategorie, int anzahl,
                                             String kundenEmail, String datum, String status) {
@@ -115,6 +117,43 @@ public class ReservierungService {
     public List<Reservierung> getReservierungenByBenutzerId(Long benutzerId) {
         return reservierungRepository.findByBenutzerId(benutzerId);
     }
+
+    // Neue Methode: Alle Reservierungen eines Benutzers anhand der E-Mail abrufen
+    public List<Reservierung> getReservierungenByEmail(String email) {
+        Benutzer benutzer = benutzerRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("Benutzer nicht gefunden mit E-Mail: " + email));
+        return reservierungRepository.findByBenutzerId(benutzer.getId());
+    }
+
+    @Transactional
+    public Buchung reservierungZuBuchung(String reservierungsnummer, String zahlweise) {
+        // 1) Reservierung finden
+        Reservierung r = reservierungRepository.findByReservierungsnummer(reservierungsnummer)
+                .orElseThrow(() -> new RuntimeException("Reservierung nicht gefunden mit Nr=" + reservierungsnummer));
+
+        if (r.getStatus().equals("STORNIERT")) {
+            throw new RuntimeException("Reservierung ist bereits storniert und kann nicht gebucht werden!");
+        }
+        // 2) Neue Buchung anlegen
+        Buchung buchung = new Buchung();
+        buchung.setBuchungsnummer(/* generieren */ "B" + System.currentTimeMillis());
+        buchung.setDatum(new Date());
+        buchung.setBenutzer(r.getBenutzer());
+        buchung.setStatus("GEBUCHT");
+        // evtl. preis berechnen
+        // Sitze übernehmen?
+        // ...
+
+        // 3) Speichern
+        Buchung saved = buchungRepository.save(buchung);
+
+        // 4) Reservierung auf "GEBUCHT" oder "ABGESCHLOSSEN" setzen, je nach Logik
+        r.setStatus("GEBUCHT");
+        reservierungRepository.save(r);
+
+        return saved;
+    }
+
 
     @Transactional
     public void cancelReservierung(Long id) {

@@ -25,6 +25,12 @@ public class RabbitConfig {
         return new RabbitTemplate(connectionFactory);
     }
 
+// für synchronen RPC
+@Bean
+public Queue rpcCommandQueue() {
+    return new Queue("rpcCommandQueue", false);
+}
+
     @Bean
     public Queue loginQueue() {
         // Deklariert eine Queue mit dem Namen "loginQueue"
