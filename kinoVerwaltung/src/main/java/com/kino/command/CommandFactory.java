@@ -6,6 +6,7 @@ import com.kino.dto.SaeleMitVorstellungenDTO;
 import com.kino.dto.VorstellungDTO;
 import com.kino.entity.*;
 import com.kino.repository.*;
+import com.kino.service.BuchungService;
 import com.kino.service.ReservierungService;
 import com.kino.service.SaalService;
 import com.kino.service.VorstellungService;
@@ -26,6 +27,7 @@ public class CommandFactory {
     private final ReservierungService reservierungService;
     private final SaalRepository saalRepository;
     private final SaalService saalService;
+    private final BuchungService buchungService;
 
     @Autowired
     public CommandFactory(BenutzerRepository benutzerRepository,
@@ -33,7 +35,7 @@ public class CommandFactory {
                           BuchungRepository buchungRepository,
                           KinoRepository kinoRepository,
                           ReservierungRepository reservierungRepository, ReservierungService reservierungService,
-                          SaalRepository saalRepository, SaalService saalService) {
+                          SaalRepository saalRepository, SaalService saalService, BuchungService buchungService) {
         this.benutzerRepository = benutzerRepository;
         this.vorstellungRepository = vorstellungRepository;
         this.vorstellungService = vorstellungService;
@@ -43,6 +45,7 @@ public class CommandFactory {
         this.reservierungService = reservierungService;
         this.saalRepository = saalRepository;
         this.saalService = saalService;
+        this.buchungService = buchungService;
     }
 
 
@@ -103,6 +106,24 @@ public class CommandFactory {
                     );
                 });
 
+            case "BUCHUNG_WRITE":
+                return new GenericCommand<Buchung>(() -> {
+                    Long vorstellungId = ((Number) payload.get("vorstellungId")).longValue();
+                    String kategorie = (String) payload.get("kategorie");
+                    int anzahl = ((Number) payload.get("anzahl")).intValue();
+                    String kundenEmail = (String) payload.get("kundenEmail");
+                    return buchungService.buchungAnlegen(vorstellungId, kategorie, anzahl, kundenEmail);
+                });
+
+            case "RESERVIERUNG_BUCHEN":
+                return new GenericCommand<Buchung>(() -> {
+                    Long reservierungId = ((Number) payload.get("reservierungId")).longValue();
+                    return buchungService.reservierungZuBuchung(reservierungId);
+                });
+
+
+
+
 
             case "BUCHUNG_QUERY":
                 // Suche eine Buchung anhand einer BuchungsNummer
@@ -119,7 +140,7 @@ public class CommandFactory {
                 });
 
 
-            case "RESERVIERUNG_QUERY_BY_EMAIL":
+         /*   case "RESERVIERUNG_QUERY_BY_EMAIL":
                 return new GenericCommand<List<Reservierung>>(() -> {
                     System.out.println("=== [CommandFactory] RESERVIERUNG_QUERY_BY_EMAIL ===");
                     String email = (String) payload.get("kundenEmail");
@@ -129,15 +150,7 @@ public class CommandFactory {
                     // Rufe Service-Methode auf
                     return reservierungService.getReservierungenByEmail(email);
                 });
-
-            case "RESERVIERUNG_BUCHEN":
-                return new GenericCommand<Buchung>(() -> {
-                    System.out.println("=== [CommandFactory] RESERVIERUNG_BUCHEN ===");
-                    String reservierungsNummer = (String) payload.get("reservierungsnummer");
-                    String zahlweise = (String) payload.getOrDefault("zahlweise", "PAYPAL");
-                    // ... Logik: reservierung → buchung
-                    return reservierungService.reservierungZuBuchung(reservierungsNummer, zahlweise);
-                });
+*/
 
             case "RESERVIERUNG_CANCEL":
                 return new GenericCommand<String>(() -> {
@@ -145,13 +158,16 @@ public class CommandFactory {
                     Reservierung r = reservierungRepository.findById(reservierungId)
                             .orElseThrow(() -> new RuntimeException("Reservierung nicht gefunden"));
 
-                    // 1) Sitze freigeben, die in dieser Reservierung "RESERVIERT" wurden
-                    //   -> Hier müsstest du in einer realen App Sitzbelegungen pro Vorstellung führen
-                    //   oder den Sitzstatus + Vorstellungsbezug tracken.
-                    //   Da das Beispiel kein Sitz->Vorstellung hat,
-                    //   müsstest du ggf. "RESERVIERUNG" die Sitze mappen. (Fehlt im Modell.)
+                    // 1) Sitze freigeben: Setze alle zugeordneten Sitze, die RESERVIERT sind, auf FREI
+                    if (r.getReservierungSitze() != null) {
+                        for (ReservierungSitz rs : r.getReservierungSitze()) {
+                            if (rs.getSitz().getStatus() == Sitzstatus.RESERVIERT) {
+                                rs.getSitz().setStatus(Sitzstatus.FREI);
+                            }
+                        }
+                    }
 
-                    // 2) Reservierung auf "STORNIERT" setzen oder löschen
+                    // 2) Reservierung auf "STORNIERT" setzen
                     r.setStatus("STORNIERT");
                     reservierungRepository.save(r);
 

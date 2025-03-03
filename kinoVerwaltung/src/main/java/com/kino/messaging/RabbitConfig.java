@@ -50,4 +50,9 @@ public class RabbitConfig {
     public Queue registerQueue() {
         return new Queue("registerQueue", false);
     }
+
+    @Bean
+    public Queue bookingStatsQueue() {
+        return new Queue("bookingStatsQueue", false);
+    }
 }

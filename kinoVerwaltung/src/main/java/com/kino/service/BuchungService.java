@@ -1,23 +1,176 @@
 package com.kino.service;
 
-import com.kino.entity.Buchung;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.kino.entity.*;
 import com.kino.repository.BuchungRepository;
+import com.kino.repository.ReservierungRepository;
+import com.kino.repository.VorstellungRepository;
+import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
-import java.util.List;
+import java.util.*;
 
-// Service für Buchung
 @Service
 public class BuchungService {
+
     @Autowired
     private BuchungRepository buchungRepository;
+    @Autowired
+    private ReservierungRepository reservierungRepository;
+    @Autowired
+    private VorstellungRepository vorstellungRepository;
+    @Autowired
+    private RabbitTemplate rabbitTemplate; // Für Stats-Events
+    @Autowired
+    private ObjectMapper objectMapper;
 
-    public List<Buchung> getBuchungenByBenutzer(Long benutzerId) {
-        return buchungRepository.findByBenutzerId(benutzerId);
+    @Transactional
+    public Buchung buchungAnlegen(Long vorstellungId, String kategorie, int anzahl, String kundenEmail) {
+        // Direkte Buchung: Sitzstatus von FREI -> GEBUCHT
+        Vorstellung v = vorstellungRepository.findById(vorstellungId)
+                .orElseThrow(() -> new RuntimeException("Vorstellung nicht gefunden"));
+
+        // Sitzsuche analog zur Reservierung, nur dass wir sie direkt auf GEBUCHT setzen
+        Saal saal = v.getSaal();
+        if (!saal.isIstFreigegeben()) {
+            throw new RuntimeException("Saal ist nicht freigegeben!");
+        }
+
+        List<Sitz> freieSitze = new ArrayList<>();
+        for (Sitzreihe sr : saal.getSitzreihen()) {
+            for (Sitz sitz : sr.getSitze()) {
+                if (sitz.getStatus() == Sitzstatus.FREI &&
+                        sitz.getKategorie().name().equalsIgnoreCase(kategorie)) {
+                    freieSitze.add(sitz);
+                    if (freieSitze.size() == anzahl) break;
+                }
+            }
+            if (freieSitze.size() == anzahl) break;
+        }
+        if (freieSitze.size() < anzahl) {
+            throw new RuntimeException("Nicht genügend freie Plätze in " + kategorie);
+        }
+
+        int totalPrice = 0;
+        List<BuchungSitz> bsList = new ArrayList<>();
+        for (Sitz sitz : freieSitze) {
+            sitz.setStatus(Sitzstatus.GEBUCHT);
+            int price = calculateSeatPrice(sitz.getKategorie());
+            totalPrice += price;
+
+            BuchungSitz bs = new BuchungSitz();
+            bs.setSitz(sitz);
+            bsList.add(bs);
+        }
+
+        Buchung buchung = new Buchung();
+        buchung.setKundenEmail(kundenEmail);
+        buchung.setStatus("GEBUCHT");
+        buchung.setSumme(totalPrice);
+        buchung.setBuchungsnummer(generateBuchungsnummer());
+        buchung.setVorstellung(v);
+        for (BuchungSitz bs : bsList) {
+            bs.setBuchung(buchung);
+        }
+        buchung.setBuchungSitze(bsList);
+
+        Buchung saved = buchungRepository.save(buchung);
+        sendStatsEvent(saved);
+        return saved;
     }
 
-    public Buchung saveBuchung(Buchung buchung) {
-        return buchungRepository.save(buchung);
+    /**
+     * Wandelt eine vorhandene Reservierung in eine Buchung um (RESERVIERT -> GEBUCHT).
+     */
+    @Transactional
+    public Buchung reservierungZuBuchung(Long reservierungId) {
+        // 1) Reservierung laden
+        Reservierung res = reservierungRepository.findById(reservierungId)
+                .orElseThrow(() -> new RuntimeException("Reservierung nicht gefunden!"));
+
+        if (!"RESERVIERT".equalsIgnoreCase(res.getStatus())) {
+            throw new RuntimeException("Reservierung ist nicht im Status RESERVIERT!");
+        }
+
+        // 2) Prüfen, ob alle Sitze noch RESERVIERT sind
+        List<Sitz> sitze = new ArrayList<>();
+        for (ReservierungSitz rs : res.getReservierungSitze()) {
+            Sitz s = rs.getSitz();
+            if (s.getStatus() != Sitzstatus.RESERVIERT) {
+                throw new RuntimeException("Mindestens ein reservierter Sitz ist nicht mehr RESERVIERT!");
+            }
+            sitze.add(s);
+        }
+
+        // 3) Sitzstatus auf GEBUCHT setzen
+        int totalPrice = 0;
+        List<BuchungSitz> buchungSitze = new ArrayList<>();
+        for (Sitz s : sitze) {
+            s.setStatus(Sitzstatus.GEBUCHT);
+            int seatPrice = calculateSeatPrice(s.getKategorie());
+            totalPrice += seatPrice;
+
+            BuchungSitz bs = new BuchungSitz();
+            bs.setSitz(s);
+            buchungSitze.add(bs);
+        }
+
+        // 4) Neue Buchung anlegen
+        Buchung buchung = new Buchung();
+        buchung.setStatus("GEBUCHT");
+        buchung.setKundenEmail(res.getKundenEmail());
+        buchung.setSumme(totalPrice);
+        buchung.setBuchungsnummer(generateBuchungsnummer());
+        buchung.setVorstellung(res.getVorstellung());
+        buchung.setReservierung(res); // Referenz zur alten Reservierung
+
+        for (BuchungSitz bs : buchungSitze) {
+            bs.setBuchung(buchung);
+        }
+        buchung.setBuchungSitze(buchungSitze);
+
+        Buchung saved = buchungRepository.save(buchung);
+
+        // 5) Reservierung abschließen
+        res.setStatus("ABGESCHLOSSEN");
+        reservierungRepository.save(res);
+
+        sendStatsEvent(saved);
+        return saved;
+    }
+
+    private int calculateSeatPrice(Sitzkategorie kat) {
+        int base = 7;
+        switch (kat) {
+            case PARKETT: return base + 1;
+            case LOGE: return base + 3;
+            case LOGE_SERVICE: return base + 5;
+            default: return base;
+        }
+    }
+
+    private String generateBuchungsnummer() {
+        int randomNum = 10000 + new Random().nextInt(90000);
+        return String.valueOf(randomNum);
+    }
+
+    /**
+     * Sendet ein Event an RabbitMQ, um die Statistik in MongoDB zu aktualisieren.
+     */
+    private void sendStatsEvent(Buchung buchung) {
+        try {
+            Map<String, Object> event = new HashMap<>();
+            event.put("vorstellungId", buchung.getVorstellung().getId());
+            event.put("filmTitel", buchung.getVorstellung().getFilmTitel());
+            event.put("summe", buchung.getSumme());
+            event.put("buchungsnummer", buchung.getBuchungsnummer());
+
+            String json = objectMapper.writeValueAsString(event);
+            rabbitTemplate.convertAndSend("", "bookingStatsQueue", json);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 }

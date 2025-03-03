@@ -30,6 +30,8 @@ public class Reservierung {
     @Column(nullable = false)
     private String kundenEmail;
 
+    private String datumReservierung;  // Format "YYYY-MM-DD"
+
     // Hier das neue Feld
     @Column(name = "vorstellung_id_fk")
     private Long vorstellungId;

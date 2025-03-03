@@ -1,13 +1,12 @@
 package com.kino.entity;
+
 import jakarta.persistence.*;
-import com.kino.entity.Sitz;
 import lombok.*;
 
-import java.util.Date;
+import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 
-
-// Buchung-Entity: Repräsentiert eine Buchung eines Sitzplatzes durch einen Benutzer
 @Entity
 @Table(name = "buchung")
 @Getter
@@ -15,56 +14,42 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 public class Buchung {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    // Eindeutige Buchungsnummer
-    @Column(name = "buchungsnummer")
+    @Column(name = "umbuchung_datum")
+    private LocalDateTime umbuchungDatum;
+    @Column(nullable = false, unique = true)
     private String buchungsnummer;
 
-    // Datum und Uhrzeit der Buchung
-    @Temporal(TemporalType.TIMESTAMP)
-    @Column(name = "datum")
-    private Date datum;
+    // Beispiel-Felder:
+    @Column(name = "kunden_email", nullable = false)
+    private String kundenEmail;
 
-    // Preis der Buchung
-    @Column(name = "preis")
-    private double preis;
+    @Column(nullable = false)
+    private String status;  // z.B. "GEBUCHT"
 
+    @Column(nullable = false)
+    private int summe; // Gesamtsumme der Buchung
+
+    // Beziehung zum Benutzer (optional, falls benötigt)
     @ManyToOne
-    @JoinColumn(name = "benutzer_id")
+    @JoinColumn(name = "benutzer_id", nullable = false)
     private Benutzer benutzer;
 
-    @Column(name = "status")
-    private String status;  // z. B. "OFFEN", "STORNIERT", "GEBUCHT"
+    // Falls die Buchung aus einer Reservierung hervorgeht:
+    @OneToOne
+    @JoinColumn(name = "reservierung_id")
+    private Reservierung reservierung;
 
-    // Eine Buchung kann mehrere Sitzplätze umfassen (Many-to-Many)
-    @ManyToMany
-    @JoinTable(name = "buchung_sitzplatz",
-            joinColumns = @JoinColumn(name = "buchung_id"),
-            inverseJoinColumns = @JoinColumn(name = "sitzplatz_id")
-    )
-    private List<Sitz> sitzplaetze;
+    // Direkte Beziehung zur Vorstellung
+    @ManyToOne
+    @JoinColumn(name = "vorstellung_id", nullable = false)
+    private Vorstellung vorstellung;
 
-    // Berechnet den Preis; Beispielimplementierung (anpassen nach Bedarf)
-    public double berechnePreis() {
-        // Hier könnte man basierend auf den Sitzkategorien den Preis berechnen.
-        return preis;
-    }
-
-    // Gibt formatierte Buchungsdetails zurück
-    public String getBuchungsdetails() {
-        StringBuilder details = new StringBuilder();
-        details.append("Buchungsnummer: ").append(buchungsnummer)
-                .append("\nDatum: ").append(datum)
-                .append("\nPreis: ").append(preis)
-                .append("\nSitzplätze: ");
-        if (sitzplaetze != null) {
-            for (Sitz sp : sitzplaetze) {
-                details.append(sp.getNummer()).append(" ");
-            }
-        }
-        return details.toString();
-    }
+    // BuchungSitze
+    @OneToMany(mappedBy = "buchung", cascade = CascadeType.ALL)
+    private List<BuchungSitz> buchungSitze = new ArrayList<>();
 }

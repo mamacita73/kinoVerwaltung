@@ -1,37 +1,29 @@
 package com.kino.service;
 
-import com.kino.dto.ReservierungDTO;
 import com.kino.entity.*;
-import com.kino.repository.*;
-import jakarta.transaction.Transactional;
-import org.springframework.beans.factory.annotation.Autowired;
+import com.kino.repository.ReservierungRepository;
+import com.kino.repository.SitzRepository; // Angenommen
+import com.kino.repository.VorstellungRepository;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.Random;
+import java.util.*;
 
-// Service für Reservierung
 @Service
 public class ReservierungService {
-    @Autowired
-    private ReservierungRepository reservierungRepository;
 
-    @Autowired
-    private VorstellungRepository vorstellungRepository;
+    private final ReservierungRepository reservierungRepository;
+    private final VorstellungRepository vorstellungRepository;
+    private final SitzRepository sitzRepository;
 
-    @Autowired
-    private BenutzerRepository benutzerRepository;
-    @Autowired
-    private SaalRepository saalRepository;
+    public ReservierungService(ReservierungRepository reservierungRepository,
+                               VorstellungRepository vorstellungRepository,
+                               SitzRepository sitzRepository) {
+        this.reservierungRepository = reservierungRepository;
+        this.vorstellungRepository = vorstellungRepository;
+        this.sitzRepository = sitzRepository;
+    }
 
-    @Autowired
-    private BuchungRepository buchungRepository;
-
-    /**
-     * Legt eine neue Reservierung an, prüft die Sitzverfügbarkeit und reserviert die benötigten Sitze.
-     */
     @Transactional
     public Reservierung reservierungAnlegen(Long vorstellungId,
                                             String kategorie,
@@ -39,111 +31,81 @@ public class ReservierungService {
                                             String kundenEmail,
                                             String datum,
                                             String status) {
-        // Laden der Vorstellung inkl. Saal, Sitzreihen und Sitze
-        Vorstellung vorstellung = vorstellungRepository
-                .findByIdFetchSaalAndSitzreihen(vorstellungId)
-                .orElseThrow(() -> new RuntimeException("Vorstellung nicht gefunden"));
+        // 1) Vorstellung laden
+        Vorstellung vorstellung = vorstellungRepository.findById(vorstellungId)
+                .orElseThrow(() -> new RuntimeException("Vorstellung nicht gefunden!"));
 
-        // Berechne die Anzahl freier Sitze in der angefragten Kategorie
-        int freiePlaetze = 0;
-        for (Sitzreihe sr : vorstellung.getSaal().getSitzreihen()) {
+        // 2) Freie Sitze in der gewünschten Kategorie suchen
+        List<Sitz> freieSitze = findFreieSitzeInVorstellung(vorstellung, kategorie, anzahl);
+        if (freieSitze.size() < anzahl) {
+            throw new RuntimeException("Nicht genügend freie Plätze in " + kategorie);
+        }
+
+        // 3) Reservierung anlegen
+        Reservierung reservierung = new Reservierung();
+        reservierung.setKundenEmail(kundenEmail);
+        reservierung.setDatum(datum);
+        reservierung.setStatus(status); // "RESERVIERT"
+        reservierung.setVorstellung(vorstellung);
+        reservierung.setReservierungsnummer(generateReservierungsnummer());
+
+        // 4) Sitzstatus auf RESERVIERT setzen + ReservierungSitz anlegen
+        List<ReservierungSitz> rsList = new ArrayList<>();
+        for (int i = 0; i < anzahl; i++) {
+            Sitz sitz = freieSitze.get(i);
+            sitz.setStatus(Sitzstatus.RESERVIERT);
+            // sitzRepository.save(sitz); // wird durch Cascade evtl. übernommen
+
+            ReservierungSitz rs = new ReservierungSitz();
+            rs.setSitz(sitz);
+            rs.setReservierung(reservierung);
+            rsList.add(rs);
+        }
+        reservierung.setReservierungSitze(rsList);
+
+        return reservierungRepository.save(reservierung);
+    }
+
+    // Hilfsmethode: Sucht SITZE (Saal -> Sitzreihen -> Sitze), die FREI und in der gewünschten Kategorie sind
+    private List<Sitz> findFreieSitzeInVorstellung(Vorstellung vorstellung, String kategorie, int anzahl) {
+        List<Sitz> result = new ArrayList<>();
+        Saal saal = vorstellung.getSaal();
+        if (!saal.isIstFreigegeben()) {
+            throw new RuntimeException("Saal ist nicht freigegeben!");
+        }
+        for (Sitzreihe sr : saal.getSitzreihen()) {
             for (Sitz sitz : sr.getSitze()) {
-                if (sitz.getKategorie().name().equalsIgnoreCase(kategorie) &&
-                        sitz.getStatus() == Sitzstatus.FREI) {
-                    freiePlaetze++;
+                if (sitz.getStatus() == Sitzstatus.FREI &&
+                        sitz.getKategorie().name().equalsIgnoreCase(kategorie)) {
+                    result.add(sitz);
                 }
+                if (result.size() == anzahl) break;
             }
+            if (result.size() == anzahl) break;
         }
-
-        if (freiePlaetze < anzahl) {
-            throw new RuntimeException("Nicht genügend freie Plätze in Kategorie " + kategorie +
-                    ". Verfügbar: " + freiePlaetze);
-        }
-
-        // Reserviere die benötigte Anzahl an Sitzen (setzt Status auf RESERVIERT)
-        int reserviert = 0;
-        outer:
-        for (Sitzreihe sr : vorstellung.getSaal().getSitzreihen()) {
-            for (Sitz sitz : sr.getSitze()) {
-                if (sitz.getKategorie().name().equalsIgnoreCase(kategorie) &&
-                        sitz.getStatus() == Sitzstatus.FREI) {
-                    sitz.setStatus(Sitzstatus.RESERVIERT);
-                    reserviert++;
-                    if (reserviert == anzahl) {
-                        break outer;
-                    }
-                }
-            }
-        }
-
-        // Erstelle den Reservierungseintrag
-        Reservierung res = new Reservierung();
-        res.setKundenEmail(kundenEmail);
-        res.setDatum(datum);
-        res.setStatus(status);
-        res.setVorstellungId(vorstellungId);
-
-        // Generiere eine Reservierungsnummer (hier als Zufallszahl)
-        Random rand = new Random();
-        int randomNum = 10000 + rand.nextInt(90000);
-        res.setReservierungsnummer(String.valueOf(randomNum));
-
-        Reservierung saved = reservierungRepository.save(res);
-        System.out.println("=== [ReservierungService] Reservierung gespeichert, ID=" + saved.getId() + " ===");
-        return saved;
-    }
-
-    public Reservierung getReservierungById(Long id) {
-        return reservierungRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Reservierung nicht gefunden"));
-    }
-
-    public List<Reservierung> getReservierungenByBenutzerId(Long benutzerId) {
-        return reservierungRepository.findByBenutzerId(benutzerId);
-    }
-
-    // Neue Methode: Alle Reservierungen eines Benutzers anhand der E-Mail abrufen
-    public List<Reservierung> getReservierungenByEmail(String email) {
-        Benutzer benutzer = benutzerRepository.findByEmail(email)
-                .orElseThrow(() -> new RuntimeException("Benutzer nicht gefunden mit E-Mail: " + email));
-        return reservierungRepository.findByBenutzerId(benutzer.getId());
+        return result;
     }
 
     @Transactional
-    public Buchung reservierungZuBuchung(String reservierungsnummer, String zahlweise) {
-        // Reservierung finden
-        Reservierung r = reservierungRepository.findByReservierungsnummer(reservierungsnummer)
-                .orElseThrow(() -> new RuntimeException("Reservierung nicht gefunden mit Nr=" + reservierungsnummer));
+    public String stornieren(Long reservierungId) {
+        Reservierung res = reservierungRepository.findById(reservierungId)
+                .orElseThrow(() -> new RuntimeException("Reservierung nicht gefunden!"));
 
-        if (r.getStatus().equals("STORNIERT")) {
-            throw new RuntimeException("Reservierung ist bereits storniert und kann nicht gebucht werden!");
+        // 1) Sitze wieder FREI
+        for (ReservierungSitz rs : res.getReservierungSitze()) {
+            Sitz sitz = rs.getSitz();
+            if (sitz.getStatus() == Sitzstatus.RESERVIERT) {
+                sitz.setStatus(Sitzstatus.FREI);
+            }
         }
-        // Neue Buchung anlegen
-        Buchung buchung = new Buchung();
-        buchung.setBuchungsnummer(/* generieren */ "B" + System.currentTimeMillis());
-        buchung.setDatum(new Date());
-        buchung.setBenutzer(r.getBenutzer());
-        buchung.setStatus("GEBUCHT");
-        // evtl. preis berechnen
-        // Sitze übernehmen?
-        // ...
-
-        // Speichern
-        Buchung saved = buchungRepository.save(buchung);
-
-        // Reservierung auf "GEBUCHT" oder "ABGESCHLOSSEN" setzen, je nach Logik
-        r.setStatus("GEBUCHT");
-        reservierungRepository.save(r);
-
-        return saved;
+        // 2) Status auf STORNIERT
+        res.setStatus("STORNIERT");
+        reservierungRepository.save(res);
+        return "Reservierung " + res.getId() + " storniert.";
     }
 
-
-    @Transactional
-    public void cancelReservierung(Long id) {
-        Reservierung r = getReservierungById(id);
-        // Sitzbelegung freigeben
-        r.setStatus("STORNIERT");
-        reservierungRepository.save(r);
+    private String generateReservierungsnummer() {
+        int randomNum = 10000 + new Random().nextInt(90000);
+        return String.valueOf(randomNum);
     }
 }
