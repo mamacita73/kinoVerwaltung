@@ -13,7 +13,8 @@ const ReservierungDashboard = () => {
             .then((res) => res.json())
             .then((data) => {
                 console.log("Geladene Reservierungen:", data);
-                setReservierungen(data);
+                const realData = JSON.parse(data);
+                setReservierungen(realData);
             })
             .catch((err) => console.error("Fehler beim Laden der Reservierungen:", err));
     }, [email]);
