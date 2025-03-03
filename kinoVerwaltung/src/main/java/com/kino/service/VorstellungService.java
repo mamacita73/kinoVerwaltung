@@ -5,13 +5,16 @@ import com.kino.entity.Saal;
 import com.kino.entity.Vorstellung;
 import com.kino.repository.SaalRepository;
 import com.kino.repository.VorstellungRepository;
+import kinoVerwaltung.Sitzstatus;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalTime;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @Service
 public class VorstellungService {
@@ -106,4 +109,31 @@ public class VorstellungService {
         }
         return result;
     }
+
+    @Transactional
+    public Map<String, Integer> berechneVerfuegbarkeit(Long vorstellungId) {
+        // Angepasste Methode, die per Join Fetch alle Relationen lädt
+        Vorstellung v = vorstellungRepository
+                .findByIdFetchSaalAndSitzreihen(vorstellungId)
+                .orElseThrow(() -> new RuntimeException("Vorstellung nicht gefunden"));
+
+        Saal saal = v.getSaal(); // hier noch in aktiver Session
+        Map<String, Integer> availability = new HashMap<>();
+        availability.put("PARKETT", 0);
+        availability.put("LOGE", 0);
+        availability.put("LOGE_SERVICE", 0);
+
+        // Jetzt können Sie sicher auf saal.getSitzreihen() zugreifen
+        saal.getSitzreihen().forEach(sr -> {
+            sr.getSitze().forEach(sitz -> {
+                if (sitz.getStatus().equals(Sitzstatus.FREI)) {
+                    String cat = sitz.getKategorie().name();
+                    availability.put(cat, availability.get(cat) + 1);
+                }
+            });
+        });
+
+        return availability;
+    }
+
 }

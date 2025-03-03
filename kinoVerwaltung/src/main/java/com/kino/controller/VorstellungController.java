@@ -25,7 +25,7 @@ import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/vorstellung")
-@CrossOrigin
+@CrossOrigin(origins = "*")
 public class VorstellungController {
 
 
@@ -49,35 +49,36 @@ public class VorstellungController {
 
 
     /**
-     * POST: Mehrfache Vorstellungen anlegen.
-     * Erwartetes JSON-Format:
+     * POST /reservierung/anlegen
+     * Beispiel-Payload:
      * {
-     *   "command": "VORSTELLUNG_MULTI_WRITE",
+     *   "command": "RESERVIERUNG_WRITE",
      *   "payload": {
-     *       "filmTitel": "Film X",
-     *       "saalIds": [1,2],
-     *       "startzeiten": ["16:00", "18:00"],
-     *       "dauerMinuten": 90
+     *     "vorstellungId": 1,
+     *     "kategorie": "LOGE",
+     *     "anzahl": 2,
+     *     "kundenEmail": "admin@fhdw.de",
+     *     "datum": "2025-03-02",
+     *     "status": "RESERVIERT"
      *   }
      * }
-     * Diese Operation wird asynchron über RabbitMQ gesendet.
      */
-    @PostMapping("/anlegenMulti")
-    public ResponseEntity<?> createMultiVorstellung(@RequestBody Map<String, Object> requestBody) {
+    @PostMapping("/anlegen")
+    public ResponseEntity<Map<String, String>> anlegen(@RequestBody Map<String, Object> requestBody) {
         try {
-            // Extrahiere den "payload"-Teil (falls vorhanden)
+            String commandType = (String) requestBody.get("command");
             Map<String, Object> payload = (Map<String, Object>) requestBody.get("payload");
-            if (payload == null) {
-                payload = requestBody;
-            }
-            // Sende den Command asynchron an RabbitMQ
-            asyncCommandSender.sendCommand("VORSTELLUNG_MULTI_WRITE", payload);
-            Map<String, String> response = Collections.singletonMap("message", "Multi-Vorstellungs-Command gesendet.");
+
+            asyncCommandSender.sendCommand(commandType, payload);
+
+            Map<String, String> response = new HashMap<>();
+            response.put("message", "Reservierung angelegt (Command gesendet).");
             return ResponseEntity.ok(response);
         } catch (Exception e) {
             e.printStackTrace();
-            return ResponseEntity.status(HttpStatus.CONFLICT)
-                    .body(Collections.singletonMap("message", e.getMessage()));
+            Map<String, String> err = new HashMap<>();
+            err.put("error", e.getMessage());
+            return ResponseEntity.badRequest().body(err);
         }
     }
 
@@ -122,30 +123,29 @@ public class VorstellungController {
      * Sendet einen RPC-Aufruf mit dem Command "VORSTELLUNG_VERFUEGBAR".
      */
     @GetMapping("/{id}/verfuegbar")
-    public ResponseEntity<?> getVerfuegbarkeit(@PathVariable Long id) {
+    public ResponseEntity<?> getVerfuegbarePlaetze(@PathVariable("id") Long id) {
         try {
-            // Erstelle eine Message-Map mit Command und Payload
+            // Message bauen
             Map<String, Object> messageMap = new HashMap<>();
             messageMap.put("command", "VORSTELLUNG_VERFUEGBAR");
 
-            // Payload: Übergibt die Vorstellung-ID
             Map<String, Object> payload = new HashMap<>();
             payload.put("id", id);
             messageMap.put("payload", payload);
 
-            // Sende synchron den RPC-Aufruf über RabbitTemplate an die Queue "rpcCommandQueue"
+            // RPC-Aufruf an die rpcCommandQueue
             Object responseObj = rabbitTemplate.convertSendAndReceive("", "rpcCommandQueue", messageMap);
+
             if (responseObj == null) {
                 throw new RuntimeException("Keine Antwort vom RPC erhalten!");
             }
 
-            // Die Antwort wird als JSON-String erwartet.
+            // Antwort (JSON-String) in Map deserialisieren
             String jsonResponse = responseObj.toString();
-            // Deserialisiere in eine Map<String, Integer>
-            Map<String, Integer> availability = objectMapper.readValue(
-                    jsonResponse, new TypeReference<Map<String, Integer>>() {});
+            Map<String, Integer> verfuegbarePlaetze =
+                    objectMapper.readValue(jsonResponse, new TypeReference<Map<String, Integer>>() {});
 
-            return ResponseEntity.ok(availability);
+            return ResponseEntity.ok(verfuegbarePlaetze);
         } catch (Exception e) {
             e.printStackTrace();
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)

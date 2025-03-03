@@ -1,4 +1,5 @@
 package com.kino.entity;
+
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -12,6 +13,7 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 public class Reservierung {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -25,6 +27,13 @@ public class Reservierung {
     @Column(nullable = false)
     private String status;
 
+    @Column(nullable = false)
+    private String kundenEmail;
+
+    // Hier das neue Feld
+    @Column(name = "vorstellung_id_fk")
+    private Long vorstellungId;
+
     @ManyToOne
     @JoinColumn(name = "benutzer_id", nullable = false)
     private Benutzer benutzer;
@@ -33,8 +42,6 @@ public class Reservierung {
     @JoinColumn(name = "vorstellung_id", nullable = false)
     private Vorstellung vorstellung;
 
-    // Liste der reservierten Sitze
     @OneToMany(mappedBy = "reservierung", cascade = CascadeType.ALL)
     private List<ReservierungSitz> reservierungSitze;
 }
-

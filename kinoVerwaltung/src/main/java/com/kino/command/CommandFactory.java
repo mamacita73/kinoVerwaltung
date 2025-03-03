@@ -91,21 +91,16 @@ public class CommandFactory {
             case "RESERVIERUNG_WRITE":
                 return new GenericCommand<Reservierung>(() -> {
                     System.out.println("=== [CommandFactory] Erstelle RESERVIERUNG_WRITE-Command ===");
-                    Map<String, Object> innerPayload = (Map<String, Object>) payload.get("payload");
-                    if (innerPayload == null) {
-                        innerPayload = payload;
-                    }
-                    Long vorstellungId = ((Number) innerPayload.get("vorstellungId")).longValue();
-                    String kategorie = (String) innerPayload.get("kategorie");
-                    int anzahl = ((Number) innerPayload.get("anzahl")).intValue();
-                    String kundenEmail = (String) innerPayload.get("kundenEmail");
-                    String datum = (String) innerPayload.getOrDefault("datum", "2025-03-02");
-                    String status = (String) innerPayload.getOrDefault("status", "RESERVIERT");
+                    Long vorstellungId = ((Number) payload.get("vorstellungId")).longValue();
+                    String kategorie = (String) payload.get("kategorie");
+                    int anzahl = ((Number) payload.get("anzahl")).intValue();
+                    String kundenEmail = (String) payload.get("kundenEmail");
+                    String datum = (String) payload.getOrDefault("datum", "2025-03-02");
+                    String status = (String) payload.getOrDefault("status", "RESERVIERT");
 
-                    Reservierung savedRes = reservierungService.reservierungAnlegen(
-                            vorstellungId, kategorie, anzahl, kundenEmail, datum, status);
-                    System.out.println("=== [CommandFactory] Reservierung gespeichert, ID: " + savedRes.getId() + " ===");
-                    return savedRes;
+                    return reservierungService.reservierungAnlegen(
+                            vorstellungId, kategorie, anzahl, kundenEmail, datum, status
+                    );
                 });
 
 
@@ -302,28 +297,8 @@ public class CommandFactory {
             case "VORSTELLUNG_VERFUEGBAR":
                 return new GenericCommand<Map<String, Integer>>(() -> {
                     System.out.println("=== [CommandFactory] Erstelle VORSTELLUNG_VERFUEGBAR-Command ===");
-                    // Hole die Vorstellung anhand der ID aus dem Payload
                     Long id = ((Number) payload.get("id")).longValue();
-                    Vorstellung vorstellung = vorstellungRepository.findById(id)
-                            .orElseThrow(() -> new RuntimeException("Vorstellung nicht gefunden, ID=" + id));
-                    // Hole den Saal und berechne die Verfügbarkeit
-                    Saal saal = vorstellung.getSaal();
-                    if (saal == null) {
-                        throw new RuntimeException("Vorstellung hat keinen Saal!");
-                    }
-                    Map<String, Integer> availability = new HashMap<>();
-                    availability.put("PARKETT", 0);
-                    availability.put("LOGE", 0);
-                    availability.put("LOGE_SERVICE", 0);
-                    for (Sitzreihe sr : saal.getSitzreihen()) {
-                        for (Sitz sitz : sr.getSitze()) {
-                            if (sitz.getStatus().equals(Sitzstatus.FREI)) {
-                                String catName = sitz.getKategorie().name();
-                                availability.put(catName, availability.get(catName) + 1);
-                            }
-                        }
-                    }
-                    return availability;
+                    return vorstellungService.berechneVerfuegbarkeit(id);
                 });
 
 

@@ -49,12 +49,13 @@ const TicketReservierung = () => {
             return;
         }
 
-        fetch(`http://localhost:8080/vorstellung/${vorstellungId}/verfügbar`)
+        fetch(`http://localhost:8080/vorstellung/${vorstellungId}/verfuegbar`)
             .then((res) => res.json())
-            .then((data) => setVerfügbar(data))
-            .catch((err) =>
-                console.error("Fehler beim Laden der Sitzverfügbarkeit:", err)
-            );
+            .then((data) => {
+                console.log("Verfügbare Plätze:", data);
+                //{ PARKETT: 10, LOGE: 3, ... }
+            })
+            .catch((err) => console.error("Fehler:", err));
     }, [vorstellungId]);
 
     const handleReservierung = async () => {
@@ -137,10 +138,6 @@ const TicketReservierung = () => {
                         </option>
                     ))}
                 </select>
-                <div style={{gridColumn: "1 / span 2", margin: "0.5rem 0"}}>
-                    <strong>Freie Plätze ({kategorie}): </strong>
-                    {verfügbar[kategorie]}
-                </div>
 
                 <label>Anzahl Plätze:</label>
                 <input
