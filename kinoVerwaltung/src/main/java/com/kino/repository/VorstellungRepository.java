@@ -21,9 +21,9 @@ public interface VorstellungRepository extends JpaRepository<Vorstellung, Long> 
 
     // Diese Query-Methode lädt eine Vorstellung mitsamt dem zugehörigen Saal, seinen Sitzreihen und den Sitzen
     @Query("SELECT v FROM Vorstellung v " +
-            "LEFT JOIN FETCH v.saal " +
-            "LEFT JOIN FETCH v.saal.sitzreihen sr " +
+            "LEFT JOIN FETCH v.saal s " +
+            "LEFT JOIN FETCH s.sitzreihen sr " +
             "LEFT JOIN FETCH sr.sitze " +
             "WHERE v.id = :id")
-    Optional<Vorstellung> findByIdFetchSaalAndSitzreihen(@Param("id") Long id);
+    Optional<Vorstellung> findByIdFetchSaalAndSitzreihen(@Param("id") Long id);;
 }

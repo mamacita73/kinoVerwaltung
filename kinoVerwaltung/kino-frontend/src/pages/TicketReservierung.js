@@ -1,7 +1,6 @@
-
-import "../styles/TicketReservierung.css"; // Import der CSS-Datei
+import "../styles/TicketReservierung.css";
 import React, { useState, useEffect } from "react";
-import {useNavigate} from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 
 const TicketReservierung = () => {
     const [vorstellungen, setVorstellungen] = useState([]);
@@ -12,10 +11,12 @@ const TicketReservierung = () => {
     const navigate = useNavigate();
 
     const kategorien = ["PARKETT", "LOGE", "LOGE_SERVICE"];
+
     // Kunden-E-Mail aus dem localStorage laden
     const [kundenEmail, setKundenEmail] = useState(() => {
         return localStorage.getItem("loggedInEmail") || "";
     });
+
     const [reservierungsnummer, setReservierungsnummer] = useState("");
     const [verfügbar, setVerfügbar] = useState({
         PARKETT: 0,
@@ -32,30 +33,41 @@ const TicketReservierung = () => {
         setKundenEmail(email);
     }, []);
 
-    // Alle Vorstellungen
     useEffect(() => {
         fetch("http://localhost:8080/vorstellung")
             .then((res) => res.json())
             .then((data) => setVorstellungen(data))
-            .catch((err) =>
-                console.error("Fehler beim Laden der Vorstellungen:", err)
-            );
+            .catch((err) => console.error("Fehler beim Laden der Vorstellungen:", err));
     }, []);
 
-    // pürfen ob verfübgar
     useEffect(() => {
-        if (!vorstellungId) {
-            setVerfügbar({ PARKETT: 0, LOGE: 0, LOGE_SERVICE: 0 });
-            return;
-        }
+        const fetchVerfügbarkeit = async () => {
+            if (!vorstellungId) {
+                setVerfügbar({ PARKETT: 0, LOGE: 0, LOGE_SERVICE: 0 });
+                return;
+            }
 
-        fetch(`http://localhost:8080/vorstellung/${vorstellungId}/verfuegbar`)
-            .then((res) => res.json())
-            .then((data) => {
-                console.log("Verfügbare Plätze:", data);
-                //{ PARKETT: 10, LOGE: 3, ... }
-            })
-            .catch((err) => console.error("Fehler:", err));
+            try {
+                const res = await fetch(`http://localhost:8080/vorstellung/${vorstellungId}/verfuegbar`);
+
+                if (!res.ok) {
+                    throw new Error(`Server-Fehler: ${res.status}`);
+                }
+
+                const text = await res.text();
+                if (!text) {
+                    console.warn("Leere Antwort vom Server für Verfügbarkeit!");
+                    return;
+                }
+
+                const data = JSON.parse(text);
+                setVerfügbar(data);
+            } catch (err) {
+                console.error("Fehler beim Abrufen der Verfügbarkeit:", err);
+            }
+        };
+
+        fetchVerfügbarkeit();
     }, [vorstellungId]);
 
     const handleReservierung = async () => {
@@ -65,7 +77,7 @@ const TicketReservierung = () => {
                 vorstellungId: parseInt(vorstellungId, 10),
                 kategorie,
                 anzahl: parseInt(anzahl, 10),
-                kundenEmail, // aus dem localstorage
+                kundenEmail,
                 datum: "2025-03-02",
                 status: "RESERVIERT"
             }
@@ -74,29 +86,35 @@ const TicketReservierung = () => {
         try {
             const response = await fetch("http://localhost:8080/reservierung/anlegen", {
                 method: "POST",
-                headers: { "Content-Type": "application/json",
+                headers: {
+                    "Content-Type": "application/json",
                     "X-User-Email": kundenEmail
                 },
                 body: JSON.stringify(payload),
             });
+
             if (!response.ok) {
                 throw new Error("Fehler beim Anlegen der Reservierung");
             }
-            const result = await response.json();
+
+            const text = await response.text();
+            if (!text) {
+                throw new Error("Leere Antwort vom Server");
+            }
+
+            const result = JSON.parse(text);
             setMessage("Reservierung erfolgreich angelegt: " + JSON.stringify(result));
 
             if (result && result.reservierungsnummer) {
                 setReservierungsnummer(result.reservierungsnummer);
             }
 
-            // **Neue Verfügbarkeit laden**, damit die Anzeige aktualisiert wird
-            // (nur falls eine Vorstellung gewählt ist)
             if (vorstellungId) {
-                const verfuegbarRes = await fetch(
-                    `http://localhost:8080/vorstellung/${vorstellungId}//verfuegbar`
-                );
-                const verfuegbarData = await verfuegbarRes.json();
-                setVerfügbar(verfuegbarData);
+                const verfuegbarRes = await fetch(`http://localhost:8080/vorstellung/${vorstellungId}/verfuegbar`);
+                const verfuegbarText = await verfuegbarRes.text();
+                if (verfuegbarText) {
+                    setVerfügbar(JSON.parse(verfuegbarText));
+                }
             }
         } catch (error) {
             console.error("Fehler:", error);
@@ -110,18 +128,10 @@ const TicketReservierung = () => {
 
             <div className="form-grid-tr">
                 <label>Kunden-E-Mail:</label>
-                <input
-                    type="email"
-                    value={kundenEmail}
-                    onChange={(e) => setKundenEmail(e.target.value)}
-                    readOnly
-                />
+                <input type="email" value={kundenEmail} readOnly />
 
                 <label>Vorstellung wählen:</label>
-                <select
-                    value={vorstellungId}
-                    onChange={(e) => setVorstellungId(e.target.value)}
-                >
+                <select value={vorstellungId} onChange={(e) => setVorstellungId(e.target.value)}>
                     <option value="">-- Bitte wählen --</option>
                     {vorstellungen.map((v) => (
                         <option key={v.id} value={v.id}>
@@ -133,28 +143,19 @@ const TicketReservierung = () => {
                 <label>Kategorie:</label>
                 <select value={kategorie} onChange={(e) => setKategorie(e.target.value)}>
                     {kategorien.map((kat) => (
-                        <option key={kat} value={kat}>
-                            {kat}
-                        </option>
+                        <option key={kat} value={kat}>{kat}</option>
                     ))}
                 </select>
 
                 <label>Anzahl Plätze:</label>
-                <input
-                    type="number"
-                    value={anzahl}
-                    onChange={(e) => setAnzahl(e.target.value)}
-                    min={1}
-                />
-
+                <input type="number" value={anzahl} onChange={(e) => setAnzahl(e.target.value)} min={1} />
 
                 {message && <p>{message}</p>}
             </div>
 
-
             <div className="reservierung-footer-tr">
                 <label>Reservierungsnummer:</label>
-                <input type="text" value={reservierungsnummer} readOnly/>
+                <input type="text" value={reservierungsnummer} readOnly />
 
                 <button className="button-tr" onClick={handleReservierung}>Reservieren</button>
                 <button className="button-tr" onClick={handleZuReservierungen}>zu den Reservierungen</button>
@@ -164,4 +165,3 @@ const TicketReservierung = () => {
 };
 
 export default TicketReservierung;
-

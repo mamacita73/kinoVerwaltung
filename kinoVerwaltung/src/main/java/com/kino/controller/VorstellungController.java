@@ -17,6 +17,7 @@ import kinoVerwaltung.Sitzstatus;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -64,21 +65,16 @@ public class VorstellungController {
      * }
      */
     @PostMapping("/anlegen")
-    public ResponseEntity<Map<String, String>> anlegen(@RequestBody Map<String, Object> requestBody) {
+    public ResponseEntity<Map<String, String>> createReservierung(@RequestBody Map<String, Object> requestBody) {
         try {
-            String commandType = (String) requestBody.get("command");
-            Map<String, Object> payload = (Map<String, Object>) requestBody.get("payload");
-
-            asyncCommandSender.sendCommand(commandType, payload);
-
             Map<String, String> response = new HashMap<>();
-            response.put("message", "Reservierung angelegt (Command gesendet).");
-            return ResponseEntity.ok(response);
+            response.put("success", "true");
+            response.put("message", "Reservierung erfolgreich");
+
+            return ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON).body(response);
         } catch (Exception e) {
             e.printStackTrace();
-            Map<String, String> err = new HashMap<>();
-            err.put("error", e.getMessage());
-            return ResponseEntity.badRequest().body(err);
+            return ResponseEntity.status(409).body(Collections.singletonMap("error", e.getMessage()));
         }
     }
 

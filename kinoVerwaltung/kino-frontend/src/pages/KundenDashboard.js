@@ -14,8 +14,8 @@ const KundenDashboard = () => {
         navigate("/ReservierungDashboard");
     };
 
-    const handleResZuBuchung = () => {
-        navigate("/ReservierungZuBuchung");
+    const handleBuchung = () => {
+        navigate("/Buchung");
     };
 
     return (
@@ -25,7 +25,7 @@ const KundenDashboard = () => {
             <div className="button-container-kd">
                 <button className="button-kd" onClick={handleZuReservieren}>Tickets reservieren</button>
                 <button className="button-kd" onClick={handleReservierung}>Reservierung anzeigen</button>
-                <button className="button-kd" onClick={handleResZuBuchung}>Tickets buchen</button>
+                <button className="button-kd" onClick={handleBuchung}>Tickets buchen</button>
             </div>
         </div>
     );
