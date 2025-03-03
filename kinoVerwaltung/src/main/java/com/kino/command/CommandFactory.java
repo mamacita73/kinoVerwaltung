@@ -140,17 +140,20 @@ public class CommandFactory {
                 });
 
 
-         /*   case "RESERVIERUNG_QUERY_BY_EMAIL":
+            case "RESERVIERUNG_QUERY_BY_EMAIL":
                 return new GenericCommand<List<Reservierung>>(() -> {
                     System.out.println("=== [CommandFactory] RESERVIERUNG_QUERY_BY_EMAIL ===");
+
+                    // E-Mail validieren
                     String email = (String) payload.get("kundenEmail");
                     if (email == null || email.isEmpty()) {
-                        throw new RuntimeException("kundenEmail fehlt!");
+                        throw new IllegalArgumentException("kundenEmail fehlt!");
                     }
-                    // Rufe Service-Methode auf
+
+                    // Service-Methode aufrufen
                     return reservierungService.getReservierungenByEmail(email);
                 });
-*/
+
 
             case "RESERVIERUNG_CANCEL":
                 return new GenericCommand<String>(() -> {

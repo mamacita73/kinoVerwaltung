@@ -2,10 +2,7 @@ package com.kino.entity;
 
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 
 import java.util.List;
 
@@ -32,8 +29,12 @@ public class Sitzreihe {
     @JoinColumn(name = "saal_id", nullable = false)
     private Saal saal;
 
-    // Beziehung zu Sitz
+    /**
+     * Ebenfalls @OrderBy, um multiple bag fetches zu vermeiden,
+     * wenn wir gleichzeitig "sitzreihen" und "sitze" fetchen.
+     */
     @OneToMany(mappedBy = "sitzreihe", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OrderBy("id ASC")
     @JsonManagedReference
     private List<Sitz> sitze;
 }

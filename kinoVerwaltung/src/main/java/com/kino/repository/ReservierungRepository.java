@@ -11,7 +11,7 @@ import java.util.Optional;
 @Repository
 public interface ReservierungRepository extends JpaRepository<Reservierung, Long> {
     List<Reservierung> findByBenutzerId(Long benutzerId);
-    List<Reservierung> findByBenutzerEmail(String email);
+    List<Reservierung> findByKundenEmail(String email);
     List<Reservierung> findByStatus(String status);
     // Liefert eine einzelne Reservierung anhand der eindeutigen Reservierungsnummer
     Optional<Reservierung> findByReservierungsnummer(String reservierungsnummer);

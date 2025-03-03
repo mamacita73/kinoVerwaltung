@@ -5,7 +5,6 @@ import lombok.*;
 
 import java.util.List;
 
-// Benutzer-Entity: Repräsentiert einen Benutzer (Admin, Kunde etc.)
 @Entity
 @Table(name = "benutzer")
 @Getter
@@ -13,6 +12,7 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 public class Benutzer {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;

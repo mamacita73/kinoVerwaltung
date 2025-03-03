@@ -21,10 +21,10 @@ public class Buchung {
 
     @Column(name = "umbuchung_datum")
     private LocalDateTime umbuchungDatum;
+
     @Column(nullable = false, unique = true)
     private String buchungsnummer;
 
-    // Beispiel-Felder:
     @Column(name = "kunden_email", nullable = false)
     private String kundenEmail;
 
@@ -34,7 +34,6 @@ public class Buchung {
     @Column(nullable = false)
     private int summe; // Gesamtsumme der Buchung
 
-    // Beziehung zum Benutzer (optional, falls benötigt)
     @ManyToOne
     @JoinColumn(name = "benutzer_id", nullable = false)
     private Benutzer benutzer;
@@ -49,7 +48,6 @@ public class Buchung {
     @JoinColumn(name = "vorstellung_id", nullable = false)
     private Vorstellung vorstellung;
 
-    // BuchungSitze
     @OneToMany(mappedBy = "buchung", cascade = CascadeType.ALL)
     private List<BuchungSitz> buchungSitze = new ArrayList<>();
 }

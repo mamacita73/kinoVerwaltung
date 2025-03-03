@@ -15,6 +15,9 @@ import java.util.Optional;
 
 @Repository
 public interface BenutzerRepository extends JpaRepository<Benutzer, Long> {
+    // Benutzer anhand der E-Mail finden (unique)
     Optional<Benutzer> findByEmail(String email);
+
+    // Alle Benutzer mit einer bestimmten Rolle abrufen
     List<Benutzer> findByRolle(Rolle rolle);
 }

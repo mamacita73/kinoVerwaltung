@@ -27,23 +27,24 @@ public class Saal {
     @Column(name = "anzahl_reihen", nullable = false)
     private int anzahlReihen;
 
-
     @Column(name = "ist_freigegeben", nullable = false)
     private boolean istFreigegeben = false;
 
-
     @ManyToOne
     @JoinColumn(name = "kino_id", nullable = true)
-    @JsonBackReference  // Rückreferenz, damit Jackson nicht den gesamten Kino-Objektbaum serialisiert
+    @JsonBackReference
     private Kino kino;
 
+    /**
+     * Wichtig: @OrderBy("id ASC"), damit wir kein MultipleBagFetchException bekommen,
+     * wenn wir Saal und Sitzreihen gemeinsam fetchen.
+     */
     @OneToMany(mappedBy = "saal", cascade = CascadeType.ALL)
+    @OrderBy("id ASC")
     @JsonIgnore
     private List<Sitzreihe> sitzreihen;
 
-    // Bidirektionale Beziehung zu Vorstellung
     @OneToMany(mappedBy = "saal", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-    @JsonManagedReference  // Verhindert Endlosschleifen beim Serialisieren
+    @JsonManagedReference
     private List<Vorstellung> vorstellungen = new ArrayList<>();
-
 }

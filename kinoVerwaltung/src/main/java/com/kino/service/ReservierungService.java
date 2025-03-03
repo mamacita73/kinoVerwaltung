@@ -2,7 +2,7 @@ package com.kino.service;
 
 import com.kino.entity.*;
 import com.kino.repository.ReservierungRepository;
-import com.kino.repository.SitzRepository; // Angenommen
+import com.kino.repository.SitzRepository;
 import com.kino.repository.VorstellungRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -24,6 +24,9 @@ public class ReservierungService {
         this.sitzRepository = sitzRepository;
     }
 
+    /**
+     * Erstellt eine neue Reservierung, wenn ausreichend freie Sitze vorhanden sind.
+     */
     @Transactional
     public Reservierung reservierungAnlegen(Long vorstellungId,
                                             String kategorie,
@@ -31,30 +34,24 @@ public class ReservierungService {
                                             String kundenEmail,
                                             String datum,
                                             String status) {
-        // 1) Vorstellung laden
         Vorstellung vorstellung = vorstellungRepository.findById(vorstellungId)
-                .orElseThrow(() -> new RuntimeException("Vorstellung nicht gefunden!"));
+                .orElseThrow(() -> new IllegalArgumentException("Vorstellung mit ID " + vorstellungId + " nicht gefunden!"));
 
-        // 2) Freie Sitze in der gewünschten Kategorie suchen
-        List<Sitz> freieSitze = findFreieSitzeInVorstellung(vorstellung, kategorie, anzahl);
+        List<Sitz> freieSitze = findeFreieSitze(vorstellung, kategorie, anzahl);
         if (freieSitze.size() < anzahl) {
-            throw new RuntimeException("Nicht genügend freie Plätze in " + kategorie);
+            throw new IllegalStateException("Nicht genügend freie Plätze in " + kategorie);
         }
 
-        // 3) Reservierung anlegen
         Reservierung reservierung = new Reservierung();
         reservierung.setKundenEmail(kundenEmail);
         reservierung.setDatum(datum);
-        reservierung.setStatus(status); // "RESERVIERT"
+        reservierung.setStatus(status);
         reservierung.setVorstellung(vorstellung);
         reservierung.setReservierungsnummer(generateReservierungsnummer());
 
-        // 4) Sitzstatus auf RESERVIERT setzen + ReservierungSitz anlegen
         List<ReservierungSitz> rsList = new ArrayList<>();
-        for (int i = 0; i < anzahl; i++) {
-            Sitz sitz = freieSitze.get(i);
+        for (Sitz sitz : freieSitze) {
             sitz.setStatus(Sitzstatus.RESERVIERT);
-            // sitzRepository.save(sitz); // wird durch Cascade evtl. übernommen
 
             ReservierungSitz rs = new ReservierungSitz();
             rs.setSitz(sitz);
@@ -66,46 +63,58 @@ public class ReservierungService {
         return reservierungRepository.save(reservierung);
     }
 
-    // Hilfsmethode: Sucht SITZE (Saal -> Sitzreihen -> Sitze), die FREI und in der gewünschten Kategorie sind
-    private List<Sitz> findFreieSitzeInVorstellung(Vorstellung vorstellung, String kategorie, int anzahl) {
-        List<Sitz> result = new ArrayList<>();
-        Saal saal = vorstellung.getSaal();
-        if (!saal.isIstFreigegeben()) {
-            throw new RuntimeException("Saal ist nicht freigegeben!");
+    /**
+     * Findet verfügbare Sitze einer bestimmten Kategorie in einer Vorstellung.
+     */
+    private List<Sitz> findeFreieSitze(Vorstellung vorstellung, String kategorie, int anzahl) {
+        if (!vorstellung.getSaal().isIstFreigegeben()) {
+            throw new IllegalStateException("Saal ist nicht freigegeben!");
         }
-        for (Sitzreihe sr : saal.getSitzreihen()) {
-            for (Sitz sitz : sr.getSitze()) {
-                if (sitz.getStatus() == Sitzstatus.FREI &&
-                        sitz.getKategorie().name().equalsIgnoreCase(kategorie)) {
-                    result.add(sitz);
-                }
-                if (result.size() == anzahl) break;
-            }
-            if (result.size() == anzahl) break;
+
+        List<Sitz> freieSitze = new ArrayList<>();
+        for (Sitzreihe sr : vorstellung.getSaal().getSitzreihen()) {
+            freieSitze.addAll(sr.getSitze().stream()
+                    .filter(sitz -> sitz.getStatus() == Sitzstatus.FREI &&
+                            sitz.getKategorie().name().equalsIgnoreCase(kategorie))
+                    .limit(anzahl - freieSitze.size())
+                    .toList());
+
+            if (freieSitze.size() >= anzahl) break;
         }
-        return result;
+        return freieSitze;
     }
 
+    /**
+     * Storniert eine Reservierung und gibt die Sitze wieder frei.
+     */
     @Transactional
     public String stornieren(Long reservierungId) {
-        Reservierung res = reservierungRepository.findById(reservierungId)
-                .orElseThrow(() -> new RuntimeException("Reservierung nicht gefunden!"));
+        Reservierung reservierung = reservierungRepository.findById(reservierungId)
+                .orElseThrow(() -> new IllegalArgumentException("Reservierung nicht gefunden!"));
 
-        // 1) Sitze wieder FREI
-        for (ReservierungSitz rs : res.getReservierungSitze()) {
+        reservierung.getReservierungSitze().forEach(rs -> {
             Sitz sitz = rs.getSitz();
             if (sitz.getStatus() == Sitzstatus.RESERVIERT) {
                 sitz.setStatus(Sitzstatus.FREI);
             }
-        }
-        // 2) Status auf STORNIERT
-        res.setStatus("STORNIERT");
-        reservierungRepository.save(res);
-        return "Reservierung " + res.getId() + " storniert.";
+        });
+
+        reservierung.setStatus("STORNIERT");
+        reservierungRepository.save(reservierung);
+        return "Reservierung " + reservierung.getId() + " storniert.";
     }
 
+    /**
+     * Generiert eine zufällige Reservierungsnummer.
+     */
     private String generateReservierungsnummer() {
-        int randomNum = 10000 + new Random().nextInt(90000);
-        return String.valueOf(randomNum);
+        return String.valueOf(10000 + new Random().nextInt(90000));
+    }
+
+    /**
+     * Ruft alle Reservierungen eines Kunden basierend auf seiner E-Mail ab.
+     */
+    public List<Reservierung> getReservierungenByEmail(String kundenEmail) {
+        return reservierungRepository.findByKundenEmail(kundenEmail);
     }
 }

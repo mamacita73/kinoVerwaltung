@@ -2,10 +2,7 @@ package com.kino.entity;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 
 @Entity
 @Table(name = "sitz")
@@ -19,38 +16,31 @@ public class Sitz {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    // Sitz-Nummer innerhalb der Reihe (z.B. 1,2,3...)
     @Column(nullable = false)
-    private int nummer;
+    private int nummer;  // Sitznummer in der Reihe
 
-    // Kategorie (PARKETT, LOGE, LOGE_SERVICE)
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private Sitzkategorie kategorie;
+    private Sitzkategorie kategorie; // PARKETT, LOGE, LOGE_SERVICE
 
-    // Status (FREI, RESERVIERT, BLOCKIERT,)
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private Sitzstatus status = Sitzstatus.FREI;
+    private Sitzstatus status = Sitzstatus.FREI; // FREI, RESERVIERT, BLOCKIERT, GEBUCHT etc.
 
     @ManyToOne
     @JoinColumn(name = "sitzreihe_id", nullable = false)
     @JsonBackReference
     private Sitzreihe sitzreihe;
-    public void setSitzreihe(Sitzreihe sitzreihe) {
-        this.sitzreihe = sitzreihe;
-    }
-    // Prüft, ob der Sitz frei ist (Sitzstatus = FREI)
+
+    // Beispiel-Methoden
     public boolean istVerfuegbar() {
         return this.status == Sitzstatus.FREI;
     }
 
-    // Setzt den Sitzstatus auf RESERVIERT
     public void reservieren() {
         setStatus(Sitzstatus.RESERVIERT);
     }
 
-    // Setzt den Sitzstatus auf GEBUCHT
     public void buchen() {
         setStatus(Sitzstatus.GEBUCHT);
     }

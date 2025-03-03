@@ -5,7 +5,6 @@ import lombok.*;
 
 import java.util.List;
 
-// Reservierung-Entity: Repräsentiert eine Sitzplatzreservierung
 @Entity
 @Table(name = "reservierung")
 @Getter
@@ -30,14 +29,19 @@ public class Reservierung {
     @Column(nullable = false)
     private String kundenEmail;
 
+    // Beispiel: Sie können optional dieses Feld für "Datum der Reservierung" verwenden
     private String datumReservierung;  // Format "YYYY-MM-DD"
 
-    // Hier das neue Feld
+    // Falls Sie es brauchen:
     @Column(name = "vorstellung_id_fk")
     private Long vorstellungId;
 
+    /**
+     * Falls Sie keinen Benutzer-Objekt angeben wollen, machen Sie nullable = true.
+     * Dann kann 'benutzer' in der DB NULL sein.
+     */
     @ManyToOne
-    @JoinColumn(name = "benutzer_id", nullable = false)
+    @JoinColumn(name = "benutzer_id", nullable = true)  // oder false, wenn Sie IMMER ein Benutzerobjekt setzen
     private Benutzer benutzer;
 
     @ManyToOne

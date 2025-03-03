@@ -11,10 +11,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalTime;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 @Service
 public class VorstellungService {
@@ -33,7 +30,6 @@ public class VorstellungService {
         return vorstellungRepository.findByFilmTitel(filmTitel);
     }
 
-
     public List<Vorstellung> getVorstellungenBySaal(Long saalId) {
         return vorstellungRepository.findBySaalId(saalId);
     }
@@ -42,56 +38,46 @@ public class VorstellungService {
         return vorstellungRepository.save(vorstellung);
     }
 
-
+    // Vorstellung anlegen mit Zeitprüfung
     @Transactional
     public Vorstellung anlegenVorstellung(String filmTitel, String startzeitStr, int dauerMinuten, Long saalId) {
-        // Saal laden
+        // Saal abrufen
         Saal saal = saalRepository.findById(saalId)
                 .orElseThrow(() -> new RuntimeException("Saal mit ID " + saalId + " nicht gefunden!"));
 
-        //  Neue Zeiten bestimmen
-        LocalTime newStart = LocalTime.parse(startzeitStr);        // z.B. "16:00" -> 16:00
-        LocalTime newEnd = newStart.plusMinutes(dauerMinuten);     // z.B. 16:00 + 90 = 17:30
+        // Startzeit umwandeln
+        LocalTime newStart = LocalTime.parse(startzeitStr);
+        LocalTime newEnd = newStart.plusMinutes(dauerMinuten);
 
-        //  Alle existierenden Vorstellungen in diesem Saal laden
+        // Überlappung mit existierenden Vorstellungen prüfen
         List<Vorstellung> existing = vorstellungRepository.findBySaalId(saalId);
-
-        //  Zeit-Überlappung prüfen
         for (Vorstellung v : existing) {
             LocalTime existingStart = v.getStartzeit();
             LocalTime existingEnd = existingStart.plusMinutes(v.getDauerMinuten());
 
-            // Prüfe, ob (newStart, newEnd) sich mit (existingStart, existingEnd) überschneidet:
-            // Das ist der Fall, wenn newStart < existingEnd und newEnd > existingStart
-            // (d.h. das Zeitintervall überlappt sich)
             boolean overlap = newStart.isBefore(existingEnd) && newEnd.isAfter(existingStart);
             if (overlap) {
-                throw new RuntimeException(
-                        "Konflikt: In Saal " + saal.getName() +
-                                " findet bereits eine Vorstellung (" + v.getFilmTitel() +
-                                ") von " + existingStart + " bis " + existingEnd + " statt!"
-                );
+                throw new RuntimeException("Zeitüberschneidung! Es gibt schon eine Vorstellung von " +
+                        existingStart + " bis " + existingEnd + " in Saal " + saal.getName());
             }
         }
 
-        //  Wenn kein Konflikt, Vorstellung anlegen
+        // Neue Vorstellung erstellen
         Vorstellung vorstellung = new Vorstellung();
         vorstellung.setFilmTitel(filmTitel);
         vorstellung.setStartzeit(newStart);
         vorstellung.setDauerMinuten(dauerMinuten);
         vorstellung.setSaal(saal);
 
-        Vorstellung saved = vorstellungRepository.save(vorstellung);
-        System.out.println("=== [VorstellungService] Vorstellung gespeichert mit ID " + saved.getId() + " ===");
-        return saved;
+        // 💾 Speichern
+        return vorstellungRepository.save(vorstellung);
     }
 
-
-    // Mehrfache Vorstellungen anlegen
+    // Mehrere Vorstellungen auf einmal anlegen
     @Transactional
     public List<Vorstellung> anlegenMehrereVorstellungen(MultiVorstellungenDTO dto) {
         if (dto.getSaalIds().size() != dto.getStartzeiten().size()) {
-            throw new RuntimeException("Anzahl Säle und Startzeiten muss übereinstimmen!");
+            throw new RuntimeException("Fehler: Anzahl der Säle und Startzeiten muss gleich sein!");
         }
 
         List<Vorstellung> result = new ArrayList<>();
@@ -110,30 +96,33 @@ public class VorstellungService {
         return result;
     }
 
+    // Verfügbare Sitzplätze berechnen
     @Transactional
     public Map<String, Integer> berechneVerfuegbarkeit(Long vorstellungId) {
-        // Angepasste Methode, die per Join Fetch alle Relationen lädt
+        // 🏛 Vorstellung abrufen
         Vorstellung v = vorstellungRepository
                 .findByIdFetchSaalAndSitzreihen(vorstellungId)
-                .orElseThrow(() -> new RuntimeException("Vorstellung nicht gefunden"));
+                .orElseThrow(() -> new RuntimeException("Vorstellung nicht gefunden!"));
 
-        Saal saal = v.getSaal(); // hier noch in aktiver Session
+        Saal saal = v.getSaal();
+        if (saal == null) {
+            throw new RuntimeException("Fehler: Saal nicht geladen. Überprüfen Sie Lazy-Loading!");
+        }
+
+        // Verfügbarkeitskarte erstellen
         Map<String, Integer> availability = new HashMap<>();
         availability.put("PARKETT", 0);
         availability.put("LOGE", 0);
         availability.put("LOGE_SERVICE", 0);
 
-        // Jetzt können Sie sicher auf saal.getSitzreihen() zugreifen
-        saal.getSitzreihen().forEach(sr -> {
-            sr.getSitze().forEach(sitz -> {
-                if (sitz.getStatus().equals(Sitzstatus.FREI)) {
-                    String cat = sitz.getKategorie().name();
-                    availability.put(cat, availability.get(cat) + 1);
-                }
-            });
-        });
+        // Sitzplatzprüfung (Lazy-Loading umgehen)
+        saal.getSitzreihen().forEach(sr -> sr.getSitze().forEach(sitz -> {
+            if (sitz.getStatus().equals(Sitzstatus.FREI)) {
+                String cat = sitz.getKategorie().name();
+                availability.put(cat, availability.getOrDefault(cat, 0) + 1);
+            }
+        }));
 
         return availability;
     }
-
 }
