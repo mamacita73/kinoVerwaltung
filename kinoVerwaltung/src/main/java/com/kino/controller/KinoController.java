@@ -11,6 +11,7 @@ import java.util.Optional;
 
 @RestController
 @RequestMapping("/kino")
+@CrossOrigin
 public class KinoController {
     @Autowired
     private KinoService kinoService;

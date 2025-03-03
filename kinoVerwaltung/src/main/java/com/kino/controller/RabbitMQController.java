@@ -14,6 +14,7 @@ import java.util.concurrent.TimeoutException;
 
 @RestController
 @RequestMapping("/rabbitmq")
+@CrossOrigin
 public class RabbitMQController {
     private final RabbitMQSender sender;
 

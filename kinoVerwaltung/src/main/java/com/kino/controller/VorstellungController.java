@@ -25,7 +25,7 @@ import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/vorstellung")
-@CrossOrigin(origins = "*")
+@CrossOrigin
 public class VorstellungController {
 
 
@@ -81,6 +81,31 @@ public class VorstellungController {
             return ResponseEntity.badRequest().body(err);
         }
     }
+
+
+    @PostMapping("/anlegenMulti")
+    @CrossOrigin
+    public ResponseEntity<Map<String, String>> anlegenMehrere(@RequestBody Map<String, Object> requestBody) {
+        try {
+            //  Extract commandType + payload
+            String commandType = (String) requestBody.get("command");
+            Map<String, Object> payload = (Map<String, Object>) requestBody.get("payload");
+
+            // Senden Sie asynchron den Command
+            asyncCommandSender.sendCommand(commandType, payload);
+
+            // Erfolgsmeldung
+            Map<String, String> response = new HashMap<>();
+            response.put("message", "Mehrfache Vorstellungen angelegt (Command gesendet).");
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            e.printStackTrace();
+            Map<String, String> err = new HashMap<>();
+            err.put("error", e.getMessage());
+            return ResponseEntity.badRequest().body(err);
+        }
+    }
+
 
 
     /**

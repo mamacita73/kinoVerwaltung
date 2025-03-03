@@ -93,7 +93,7 @@ const TicketReservierung = () => {
             // (nur falls eine Vorstellung gewählt ist)
             if (vorstellungId) {
                 const verfuegbarRes = await fetch(
-                    `http://localhost:8080/vorstellung/${vorstellungId}/verfügbar`
+                    `http://localhost:8080/vorstellung/${vorstellungId}//verfuegbar`
                 );
                 const verfuegbarData = await verfuegbarRes.json();
                 setVerfügbar(verfuegbarData);
