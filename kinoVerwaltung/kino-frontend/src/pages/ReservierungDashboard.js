@@ -1,10 +1,17 @@
 import React, { useState, useEffect } from "react";
-import "../styles/ReservierungDashboard.css"; // Import der allgemeinen CSS-Datei
+import "../styles/ReservierungDashboard.css";
+import {useNavigate} from "react-router-dom"; // Import der allgemeinen CSS-Datei
 
 const ReservierungDashboard = () => {
     const [message, setMessage] = useState("");
     const [reservierungen, setReservierungen] = useState([]);
     const [email, setEmail] = useState(() => localStorage.getItem("loggedInEmail") || "");
+    const navigate = useNavigate();
+    const handleBack = () => {
+        navigate("/KundenDashboard");
+    };
+
+
 
     useEffect(() => {
         if (!email) return;
@@ -51,7 +58,7 @@ const ReservierungDashboard = () => {
             <h2>Reservierung</h2>
 
             <div className="form-grid-rd">
-                {reservierungen.map((resItem) => (
+
                     <div key={resItem.id} className="reservierung-item">
                         <label className="label-rd">
                             Reservierungsnummer: {resItem.reservierungsnummer}
@@ -77,8 +84,14 @@ const ReservierungDashboard = () => {
                             Stornieren
                         </button>
                         <button className="button-rd">Buchen</button>
+                        <button className="button-tr" onClick={handleBack}>
+                            Stornieren
+                        </button>
+                        <button className="button-tr" onClick={handleBack}>
+                            Zurück
+                        </button>
                     </div>
-                ))}
+
             </div>
 
             {message && <p>{message}</p>}

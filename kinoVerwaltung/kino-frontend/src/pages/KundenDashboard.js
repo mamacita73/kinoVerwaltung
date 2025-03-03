@@ -18,6 +18,10 @@ const KundenDashboard = () => {
         navigate("/Buchung");
     };
 
+    const handleBack = () => {
+        navigate("/");
+    };
+
     return (
         <div className="dashboard-container-kd">
             <h2>Ticketverwaltung</h2>
@@ -26,6 +30,7 @@ const KundenDashboard = () => {
                 <button className="button-kd" onClick={handleZuReservieren}>Tickets reservieren</button>
                 <button className="button-kd" onClick={handleReservierung}>Reservierung anzeigen</button>
                 <button className="button-kd" onClick={handleBuchung}>Tickets buchen</button>
+                <button className="button-kd" onClick={handleBack}>Abmelden</button>
             </div>
         </div>
     );

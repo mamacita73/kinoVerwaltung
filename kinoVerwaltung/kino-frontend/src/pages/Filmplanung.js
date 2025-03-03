@@ -44,6 +44,15 @@ const Filmplanung = () => {
     // Navigation zu VorstellungAnlegen
     const handleGoToVorstellungAnlegen = () => {
         navigate("/VorstellungAnlegen");
+
+    };
+
+    const handleGoToFilmDashboard = () => {
+        navigate("/FilmDashboard");
+    };
+
+    const handleGoToHome = () => {
+        navigate("/");
     };
 
     return (
@@ -95,6 +104,12 @@ const Filmplanung = () => {
                     </button>
                     <button className="button-p" onClick={handleGoToVorstellungAnlegen}>
                         Vorstellung anlegen
+                    </button>
+                    <button className="button-p" onClick={handleGoToFilmDashboard}>
+                        Film-Dashboard
+                    </button>
+                    <button className="button-p" onClick={handleGoToHome}>
+                        Abmelden
                     </button>
 
                 </div>

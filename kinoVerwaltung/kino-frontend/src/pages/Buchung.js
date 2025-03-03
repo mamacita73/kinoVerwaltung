@@ -123,7 +123,7 @@ const Buchung = () => {
 
     // 6) Abbrechen
     const handleAbbrechen = () => {
-        navigate("/");
+        navigate("/KundenDashboard");
     };
 
     return (

@@ -15,7 +15,7 @@ const ReservierungZuBuchung = () => {
 
     // Abbrechen-Handler
     const handleAbbrechen = () => {
-        navigate("/"); // oder zu einer anderen Route
+        navigate("/KundenDashboard"); // oder zu einer anderen Route
     };
 
     // Buchen-Handler: Sendet den RESERVIERUNG_BUCHEN-Command ans Backend

@@ -27,6 +27,9 @@ const TicketReservierung = () => {
     const handleZuReservierungen = () => {
         navigate("/ReservierungDashboard");
     };
+    const handleBack = () => {
+        navigate("/KundenDashboard");
+    };
 
     useEffect(() => {
         const email = localStorage.getItem("loggedInEmail") || "";
@@ -155,10 +158,17 @@ const TicketReservierung = () => {
 
             <div className="reservierung-footer-tr">
                 <label>Reservierungsnummer:</label>
-                <input type="text" value={reservierungsnummer} readOnly />
+                <input type="text" value={reservierungsnummer} readOnly/>
 
-                <button className="button-tr" onClick={handleReservierung}>Reservieren</button>
-                <button className="button-tr" onClick={handleZuReservierungen}>zu den Reservierungen</button>
+                <button className="button-tr" onClick={handleReservierung}>
+                    Reservieren
+                </button>
+                <button className="button-tr" onClick={handleZuReservierungen}>
+                    Reservierungen verwalten
+                </button>
+                <button className="button-tr" onClick={handleBack}>
+                    Zurück
+                </button>
             </div>
         </div>
     );
