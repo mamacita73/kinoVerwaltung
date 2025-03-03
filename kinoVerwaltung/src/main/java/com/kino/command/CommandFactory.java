@@ -314,11 +314,12 @@ public class CommandFactory {
 
 
             case "VORSTELLUNG_VERFUEGBAR":
-                return new GenericCommand<List<Sitz>>(() -> {
+                return new GenericCommand<Map<String, Integer>>(() -> {
                     System.out.println("=== [CommandFactory] Erstelle VORSTELLUNG_VERFUEGBAR-Command ===");
                     Long id = ((Number) payload.get("id")).longValue();
-                    String kategorie =((String) payload.get("kategorie"));
-                    return vorstellungService.berechneVerfuegbarkeit(id, kategorie);
+
+                    // Rufe die @Transactional-Methode auf:
+                    return vorstellungService.getFreiePlaetze(id);
                 });
 
 

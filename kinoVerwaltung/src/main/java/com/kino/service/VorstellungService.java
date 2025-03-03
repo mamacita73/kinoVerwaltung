@@ -1,14 +1,10 @@
 package com.kino.service;
 
 import com.kino.dto.MultiVorstellungenDTO;
-import com.kino.entity.Saal;
-import com.kino.entity.Sitz;
-import com.kino.entity.Sitzreihe;
-import com.kino.entity.Vorstellung;
+import com.kino.entity.*;
 import com.kino.repository.SaalRepository;
 import com.kino.repository.VorstellungRepository;
 import kinoVerwaltung.Sitzkategorie;
-import kinoVerwaltung.Sitzstatus;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -101,27 +97,30 @@ public class VorstellungService {
 
     // Verfügbare Sitzplätze berechnen
     @Transactional
-    public List<Sitz> berechneVerfuegbarkeit(Long vorstellungId, String kategorie) {
+    public Map<String, Integer> getFreiePlaetze(Long vorstellungId) {
         //  Vorstellung abrufen
         Vorstellung v = vorstellungRepository
                 .findById(vorstellungId)
                 .orElseThrow(() -> new RuntimeException("Vorstellung nicht gefunden!"));
 
+        // Lazy-Loading von v.getSaal() ist hier möglich, da @Transactional
         Saal saal = v.getSaal();
         if (!saal.isIstFreigegeben()) {
             throw new RuntimeException("Saal ist nicht freigegeben!");
         }
 
-        List<Sitz> freieSitze = new ArrayList<>();
-        for (Sitzreihe sr : saal.getSitzreihen()) {
-            for (Sitz sitz : sr.getSitze()) {
-                if (sitz.getStatus() == com.kino.entity.Sitzstatus.FREI &&
-                        sitz.getKategorie().name().equalsIgnoreCase(kategorie)) {
-                    freieSitze.add(sitz);
+        // freie Sitze zählen
+        int count = 0;
+        for (Sitzreihe reihe : saal.getSitzreihen()) {
+            for (Sitz sitz : reihe.getSitze()) {
+                if (sitz.getStatus() == Sitzstatus.FREI) {
+                    count++;
                 }
             }
         }
 
-        return freieSitze;
+        Map<String, Integer> result = new HashMap<>();
+        result.put("freiePlaetze", count);
+        return result;
     }
 }
