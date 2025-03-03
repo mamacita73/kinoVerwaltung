@@ -30,8 +30,13 @@ public class SaalAnlegenService {
      */
     public void reihenAnlegen(Saal saal, int anzahlReihen) {
 
-        saal.setAnzahlReihen(anzahlReihen);
-        reihenCounter = anzahlReihen;
+        if(anzahlReihen >= 0) {
+            saal.setAnzahlReihen(anzahlReihen);
+            reihenCounter = anzahlReihen;
+        } else {
+            throw new IllegalArgumentException("Anzahl der Reihen muss größer oder gleich 0 sein!");
+        }
+
 
     }
 
@@ -43,17 +48,22 @@ public class SaalAnlegenService {
      */
     public void sitzeAnlegen(Saal saal, int anzahlSitze, Sitzkategorie kategorie) {
 
-        SitzreiheImpl sitzreihe = new SitzreiheImpl();
-        sitzreihe.setAnzahlPlaetze(anzahlSitze);
-        sitzreihe.setNummer(reihenCounter);
-        for (int i = 1; i <= anzahlSitze; i++) {
-            SitzplatzImpl sitzplatz = new SitzplatzImpl();
-            sitzplatz.setNummer(i);
-            sitzplatz.setSitzkategorie(kategorie);
-            sitzplatz.setSitzstatus(Sitzstatus.FREI);
-            sitzplatz.setNummer(reihenCounter);
+        if (saal != null) {
+            SitzreiheImpl sitzreihe = new SitzreiheImpl();
+            sitzreihe.setAnzahlPlaetze(anzahlSitze);
+            sitzreihe.setNummer(reihenCounter);
+            for (int i = 1; i <= anzahlSitze; i++) {
+                SitzplatzImpl sitzplatz = new SitzplatzImpl();
+                sitzplatz.setNummer(i);
+                sitzplatz.setSitzkategorie(kategorie);
+                sitzplatz.setSitzstatus(Sitzstatus.FREI);
+                sitzplatz.setNummer(reihenCounter);
+            }
+            reihenCounter--;
+        } else {
+            throw new NullPointerException("Saal darf nicht null sein!");
         }
-        reihenCounter--;
+
     }
 
 }

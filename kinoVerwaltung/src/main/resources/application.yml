@@ -15,6 +15,9 @@ spring:
     hibernate:
       ddl-auto: update  # Alternativ "validate", falls das Schema manuell verwaltet wird
 
+  data:
+    mongodb:
+      uri: "mongodb://admin:fhdw@mongo:27017/kinodb?authSource=admin"
 
 logging:
   level:
@@ -26,8 +29,3 @@ logging:
     com.kino: DEBUG       # Für deine eigenen Klassen
   pattern:
     console: "%d{HH:mm:ss.SSS} %-5level %logger{36} - %msg%n"
-
-
-  data:
-    mongodb:
-      uri: mongodb://mongo:27017/kinodb

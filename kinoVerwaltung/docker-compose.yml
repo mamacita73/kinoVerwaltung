@@ -23,7 +23,7 @@ services:
       SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/kinodb
       SPRING_DATASOURCE_USERNAME: admin
       SPRING_DATASOURCE_PASSWORD: fhdw
-      SPRING_DATA_MONGODB_URI: mongodb://mongo:27017/kinodb
+      # SPRING_DATA_MONGODB_URI: mongodb://mongo:27017/kinodb
     networks:
       - kino-net
 
