@@ -59,38 +59,6 @@ const ReservierungDashboard = () => {
 
             <div className="form-grid-rd">
 
-                    <div key={resItem.id} className="reservierung-item">
-                        <label className="label-rd">
-                            Reservierungsnummer: {resItem.reservierungsnummer}
-                        </label>
-                        <label className="label-rd">
-                            reservierte Sitze: {resItem.anzahl /* falls du anzahl als Feld hast */}
-                        </label>
-                        <label className="label-rd">
-                            Sitzkategorie: {resItem.sitzKategorie /* falls vorhanden */}
-                        </label>
-                        <label className="label-rd">
-                            Film: {resItem.filmTitel /* falls vorhanden */}
-                        </label>
-                        <label className="label-rd">
-                            Start: {resItem.startzeit /* falls vorhanden */}
-                        </label>
-                        <label className="label-rd">
-                            Ende: {resItem.endzeit /* oder berechnet: startzeit + dauer */}
-                        </label>
-                        <label className="label-rd">Status: {resItem.status}</label>
-
-                        <button className="button-rd" onClick={() => handleCancel(resItem.id)}>
-                            Stornieren
-                        </button>
-                        <button className="button-rd">Buchen</button>
-                        <button className="button-tr" onClick={handleBack}>
-                            Stornieren
-                        </button>
-                        <button className="button-tr" onClick={handleBack}>
-                            Zurück
-                        </button>
-                    </div>
 
             </div>
 

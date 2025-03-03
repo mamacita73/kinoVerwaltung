@@ -1,6 +1,7 @@
 package com.kino.command;
 
 
+import com.kino.dto.BuchungDTO;
 import com.kino.dto.MultiVorstellungenDTO;
 import com.kino.dto.SaeleMitVorstellungenDTO;
 import com.kino.dto.VorstellungDTO;
@@ -107,13 +108,23 @@ public class CommandFactory {
                 });
 
             case "BUCHUNG_WRITE":
-                return new GenericCommand<Buchung>(() -> {
+                return new GenericCommand<BuchungDTO>(() -> {
                     Long vorstellungId = ((Number) payload.get("vorstellungId")).longValue();
                     String kategorie = (String) payload.get("kategorie");
                     int anzahl = ((Number) payload.get("anzahl")).intValue();
                     String kundenEmail = (String) payload.get("kundenEmail");
                     // Die Buchung wird angelegt und als Objekt zurückgegeben
-                    return buchungService.buchungAnlegen(vorstellungId, kategorie, anzahl, kundenEmail);
+
+                    // Buchung anlegen
+                    Buchung buchung = buchungService.buchungAnlegen(vorstellungId, kategorie, anzahl, kundenEmail);
+
+                    // Nur die benötigten Felder in ein DTO packen
+                    BuchungDTO dto = new BuchungDTO(
+                            buchung.getBuchungsnummer(),
+                            buchung.getStatus(),
+                            buchung.getSumme()
+                    );
+                    return dto;
                 });
 
             case "RESERVIERUNG_BUCHEN":
