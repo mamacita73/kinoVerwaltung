@@ -314,10 +314,11 @@ public class CommandFactory {
 
 
             case "VORSTELLUNG_VERFUEGBAR":
-                return new GenericCommand<Map<String, Integer>>(() -> {
+                return new GenericCommand<List<Sitz>>(() -> {
                     System.out.println("=== [CommandFactory] Erstelle VORSTELLUNG_VERFUEGBAR-Command ===");
                     Long id = ((Number) payload.get("id")).longValue();
-                    return vorstellungService.berechneVerfuegbarkeit(id);
+                    String kategorie =((String) payload.get("kategorie"));
+                    return vorstellungService.berechneVerfuegbarkeit(id, kategorie);
                 });
 
 

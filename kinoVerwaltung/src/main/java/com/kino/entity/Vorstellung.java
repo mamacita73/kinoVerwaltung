@@ -2,6 +2,7 @@ package com.kino.entity;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
+import kinoVerwaltung.impl.VorstellungImpl;
 import lombok.*;
 
 import java.time.LocalTime;
@@ -32,4 +33,5 @@ public class Vorstellung {
     @JoinColumn(name = "saal_id", nullable = false)
     @JsonBackReference
     private Saal saal;
+
 }

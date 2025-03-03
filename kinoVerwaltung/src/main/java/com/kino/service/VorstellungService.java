@@ -2,9 +2,12 @@ package com.kino.service;
 
 import com.kino.dto.MultiVorstellungenDTO;
 import com.kino.entity.Saal;
+import com.kino.entity.Sitz;
+import com.kino.entity.Sitzreihe;
 import com.kino.entity.Vorstellung;
 import com.kino.repository.SaalRepository;
 import com.kino.repository.VorstellungRepository;
+import kinoVerwaltung.Sitzkategorie;
 import kinoVerwaltung.Sitzstatus;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -98,31 +101,27 @@ public class VorstellungService {
 
     // Verfügbare Sitzplätze berechnen
     @Transactional
-    public Map<String, Integer> berechneVerfuegbarkeit(Long vorstellungId) {
+    public List<Sitz> berechneVerfuegbarkeit(Long vorstellungId, String kategorie) {
         // 🏛 Vorstellung abrufen
         Vorstellung v = vorstellungRepository
                 .findByIdFetchSaalAndSitzreihen(vorstellungId)
                 .orElseThrow(() -> new RuntimeException("Vorstellung nicht gefunden!"));
 
         Saal saal = v.getSaal();
-        if (saal == null) {
-            throw new RuntimeException("Fehler: Saal nicht geladen. Überprüfen Sie Lazy-Loading!");
+        if (!saal.isIstFreigegeben()) {
+            throw new RuntimeException("Saal ist nicht freigegeben!");
         }
 
-        // Verfügbarkeitskarte erstellen
-        Map<String, Integer> availability = new HashMap<>();
-        availability.put("PARKETT", 0);
-        availability.put("LOGE", 0);
-        availability.put("LOGE_SERVICE", 0);
-
-        // Sitzplatzprüfung (Lazy-Loading umgehen)
-        saal.getSitzreihen().forEach(sr -> sr.getSitze().forEach(sitz -> {
-            if (sitz.getStatus().equals(Sitzstatus.FREI)) {
-                String cat = sitz.getKategorie().name();
-                availability.put(cat, availability.getOrDefault(cat, 0) + 1);
+        List<Sitz> freieSitze = new ArrayList<>();
+        for (Sitzreihe sr : saal.getSitzreihen()) {
+            for (Sitz sitz : sr.getSitze()) {
+                if (sitz.getStatus() == com.kino.entity.Sitzstatus.FREI &&
+                        sitz.getKategorie().name().equalsIgnoreCase(kategorie)) {
+                    freieSitze.add(sitz);
+                }
             }
-        }));
+        }
 
-        return availability;
+        return freieSitze;
     }
 }
