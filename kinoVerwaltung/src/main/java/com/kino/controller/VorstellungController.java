@@ -163,6 +163,7 @@ public class VorstellungController {
 
             // Antwort (JSON-String) in Map deserialisieren
             String jsonResponse = responseObj.toString();
+
             Map<String, Integer> verfuegbarePlaetze =
                     objectMapper.readValue(jsonResponse, new TypeReference<Map<String, Integer>>() {});
 

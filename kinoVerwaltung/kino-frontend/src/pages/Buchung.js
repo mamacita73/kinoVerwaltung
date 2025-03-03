@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import {data, useNavigate} from "react-router-dom";
 import "../styles/Buchung.css";
 
 const Buchung = () => {
@@ -9,6 +9,7 @@ const Buchung = () => {
     const [vorstellungen, setVorstellungen] = useState([]);
 
     // Formulareingaben
+
     const [selectedFilmId, setSelectedFilmId] = useState("");
     const [selectedFilm, setSelectedFilm] = useState(null); // Objekt der gewählten Vorstellung
     const [selectedKategorie, setSelectedKategorie] = useState("");
@@ -24,29 +25,64 @@ const Buchung = () => {
     // Standardwert für freie Plätze, falls nicht dynamisch ermittelt
     const [freiePlaetze, setFreiePlaetze] = useState(20);
 
+    // Kunden-E-Mail aus dem localStorage laden
+    const [kundenEmail, setKundenEmail] = useState(() => {
+        return localStorage.getItem("loggedInEmail") || "";
+    });
+
     // Beim Laden: Vorstellungen vom Backend abrufen
     useEffect(() => {
+        console.log("Lade Vorstellungen vom Backend...");
         fetch("http://localhost:8080/vorstellung")
             .then((res) => res.json())
-            .then((data) => setVorstellungen(data))
-            .catch((err) =>
-                console.error("Fehler beim Laden der Vorstellungen:", err)
-            );
+            .then((data) => {
+                const realData = JSON.parse(data);
+                console.log("Empfangene Vorstellungen:", realData);
+                setVorstellungen(realData);
+            })
+            .catch((err) => {
+                console.error("Fehler beim Laden der Vorstellungen:", err);
+            });
     }, []);
+    useEffect(() => {
+        const email = localStorage.getItem("loggedInEmail") || "";
+        setKundenEmail(email);
+    }, [])
+
+
 
     // Wenn ein Film ausgewählt wird, aktualisiere die Detailfelder
     useEffect(() => {
         if (selectedFilmId) {
             const film = vorstellungen.find((v) => v.id.toString() === selectedFilmId);
+            console.log("Ausgewählter Film:", film);
             setSelectedFilm(film || null);
-            // Falls der Film ein Feld 'freiePlaetze' besitzt, können Sie diesen Wert verwenden.
-            // Hier simulieren wir 20 freie Plätze, wenn kein Wert vorhanden ist.
-            setFreiePlaetze(film && film.freiePlaetze ? film.freiePlaetze : 20);
+
+            // RPC-Aufruf zur Verfügbarkeitsabfrage:
+            const url = 'http://localhost:8080/vorstellung/${selectedFilmId}/verfuegbar';
+            console.log("Verfügbarkeits-ep:, url")
+            fetch(url)
+                .then((res) => res.json())
+                .then((data) => {
+                    const realData = JSON.parse(data);
+                    console.log("Liste freier Sitze:", realData);  // data ist ein Array
+                    const freie = realData.length;                 // => Anzahl
+                    console.log("Anzahl freier Sitze: ", freie);
+                    setFreiePlaetze(freie);
+                })
+                .catch((err) => {
+                    console.error("Fehler bei der RPC-Verfügbarkeitsabfrage:", err);
+                    // Fallback-Wert:
+                    setFreiePlaetze(20);
+                });
         } else {
             setSelectedFilm(null);
             setFreiePlaetze(0);
         }
     }, [selectedFilmId, vorstellungen]);
+
+
+
 
     // Berechnung der Summe: Basis 7€ plus Aufschlag je Kategorie
     useEffect(() => {
@@ -91,25 +127,24 @@ const Buchung = () => {
                 vorstellungId: parseInt(selectedFilmId, 10),
                 kategorie: selectedKategorie,
                 anzahl: anzahl,
-                kundenEmail: localStorage.getItem("loggedInEmail") || "",
+                kundenEmail,
             },
         };
+        console.log("payload: ", payload);
 
         try {
             const response = await fetch("http://localhost:8080/buchung/anlegen", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify(payload),
+                body: JSON.stringify(payload)
             });
-            if (!response.ok) {
-                throw new Error("Fehler beim Anlegen der Buchung");
-            }
             const result = await response.json();
-            alert("Buchung erfolgreich: " + result.message);
-            if (result.buchungsnummer) {
-                setBuchungsnummer(result.buchungsnummer);
+            console.log("Buchungsergebnis vom Server: ", result)
+            if (!response.ok) {
+                throw new Error(result.error || "Fehler beim Senden des Buchungs-Commands");
             }
-            // Optional: Nach erfolgreicher Buchung können Sie zu einer Bestätigungsseite navigieren.
+            alert(result.message);
+            // Da asynchron arbeiten wir hier nur mit der Rückmeldung, dass der Command gesendet wurde.
         } catch (error) {
             console.error("Fehler:", error);
             alert("Fehler beim Buchen: " + error.message);
@@ -125,6 +160,10 @@ const Buchung = () => {
         <div className="buchung-container-b">
             <h2>Tickets buchen</h2>
             <div className="form-grid-b">
+
+                <label>Kunden-E-Mail:</label>
+                <input type="email" value={kundenEmail} readOnly/>
+
                 <label>Film:</label>
                 <select
                     value={selectedFilmId}
@@ -139,11 +178,13 @@ const Buchung = () => {
                 </select>
 
                 <label className="label-b">Start:</label>
-                <input type="text" value={selectedFilm ? selectedFilm.startzeit : ""} readOnly className="input-b" />
+                <input type="text" value={selectedFilm ? selectedFilm.startzeit : ""} readOnly className="input-b"/>
 
                 <label className="label-b">Ende:</label>
                 {/* Berechnen Sie das Ende anhand von Startzeit und Dauer, falls gewünscht */}
-                <input type="text" value={selectedFilm ? calculateEnde(selectedFilm.startzeit, selectedFilm.dauerMinuten) : ""} readOnly className="input-b" />
+                <input type="text"
+                       value={selectedFilm ? calculateEnde(selectedFilm.startzeit, selectedFilm.dauerMinuten) : ""}
+                       readOnly className="input-b"/>
 
                 <label>Sitzplatzkategorie:</label>
                 <select
@@ -159,7 +200,7 @@ const Buchung = () => {
                 </select>
 
                 <label className="label-b">Anzahl freie Plätze:</label>
-                <input type="number" value={freiePlaetze} readOnly className="input-b" />
+                <input type="number" value={freiePlaetze} readOnly className="input-b"/>
 
                 <label className="label-b">Anzahl:</label>
                 <input
@@ -171,7 +212,7 @@ const Buchung = () => {
                 />
 
                 <label className="label-b">Summe (€):</label>
-                <input type="number" value={summe} readOnly className="input-b" />
+                <input type="number" value={summe} readOnly className="input-b"/>
 
                 <label>Zahlweise:</label>
                 <select
@@ -187,7 +228,7 @@ const Buchung = () => {
                 </select>
 
                 <label className="label-b">Buchungsnummer:</label>
-                <input type="text" value={buchungsnummer} readOnly className="input-b" />
+                <input type="text" value={buchungsnummer} readOnly className="input-b"/>
             </div>
 
             <div className="footer-b">

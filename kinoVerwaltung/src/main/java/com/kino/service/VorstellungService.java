@@ -102,9 +102,9 @@ public class VorstellungService {
     // Verfügbare Sitzplätze berechnen
     @Transactional
     public List<Sitz> berechneVerfuegbarkeit(Long vorstellungId, String kategorie) {
-        // 🏛 Vorstellung abrufen
+        //  Vorstellung abrufen
         Vorstellung v = vorstellungRepository
-                .findByIdFetchSaalAndSitzreihen(vorstellungId)
+                .findById(vorstellungId)
                 .orElseThrow(() -> new RuntimeException("Vorstellung nicht gefunden!"));
 
         Saal saal = v.getSaal();

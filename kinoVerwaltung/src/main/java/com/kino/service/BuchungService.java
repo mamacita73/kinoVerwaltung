@@ -2,6 +2,7 @@ package com.kino.service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.kino.entity.*;
+import com.kino.repository.BenutzerRepository;
 import com.kino.repository.BuchungRepository;
 import com.kino.repository.ReservierungRepository;
 import com.kino.repository.VorstellungRepository;
@@ -25,6 +26,8 @@ public class BuchungService {
     private RabbitTemplate rabbitTemplate; // Für Stats-Events
     @Autowired
     private ObjectMapper objectMapper;
+    @Autowired
+    private BenutzerRepository benutzerRepository;
 
     @Transactional
     public Buchung buchungAnlegen(Long vorstellungId, String kategorie, int anzahl, String kundenEmail) {
@@ -65,7 +68,13 @@ public class BuchungService {
             bsList.add(bs);
         }
 
+
+        Benutzer benutzer = benutzerRepository.findByEmail(kundenEmail)
+                .orElseThrow(() -> new RuntimeException("Benutzer nicht gefunden!"));
+
+
         Buchung buchung = new Buchung();
+        buchung.setBenutzer(benutzer);
         buchung.setKundenEmail(kundenEmail);
         buchung.setStatus("GEBUCHT");
         buchung.setSumme(totalPrice);
@@ -168,7 +177,7 @@ public class BuchungService {
             event.put("buchungsnummer", buchung.getBuchungsnummer());
 
             String json = objectMapper.writeValueAsString(event);
-            rabbitTemplate.convertAndSend("", "bookingStatsQueue", json);
+            rabbitTemplate.convertAndSend("bookingStatsQueue", json);
         } catch (Exception e) {
             e.printStackTrace();
         }

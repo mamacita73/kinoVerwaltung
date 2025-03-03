@@ -35,6 +35,7 @@ public class BuchungController {
     public ResponseEntity<Map<String, String>> anlegen(@RequestBody Map<String, Object> requestBody) {
         try {
             String commandType = (String) requestBody.get("command");
+            @SuppressWarnings("unchecked")
             Map<String, Object> payload = (Map<String, Object>) requestBody.get("payload");
 
             asyncCommandSender.sendCommand(commandType, payload);
