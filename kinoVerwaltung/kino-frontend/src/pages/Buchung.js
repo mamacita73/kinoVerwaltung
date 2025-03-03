@@ -42,13 +42,13 @@ const Buchung = () => {
             console.log("Ausgewählter Film:", film);
             setSelectedFilm(film || null);
 
-            const url = `http://localhost:8080/vorstellung/${selectedFilmId}/verfuegbar`;
+            const url = `http://localhost:8080/vorstellung/${selectedFilmId}/verfuegbar?kategorie=${selectedKategorie}`;
             console.log("Verfügbarkeitsabfrage:", url);
 
             fetch(url)
                 .then(res => res.json())
                 .then(data => {
-                    console.log("Verfügbare Plätze (Objekt):", data);
+                    console.log("VRPC-Antwort (freie Plätze):", data);
                     // data = { freiePlaetze: 12 }
                     const freie = data.freiePlaetze; // KEIN data.length!
                     console.log("Anzahl freie Plätze:", freie);
@@ -57,12 +57,12 @@ const Buchung = () => {
                 .catch(err => {
                     console.error("Fehler bei der RPC-Verfügbarkeitsabfrage:", err);
                     setFreiePlaetze(20); // Fallback
-                });
+                 });
         } else {
             setSelectedFilm(null);
             setFreiePlaetze(0);
         }
-    }, [selectedFilmId, vorstellungen]);
+    }, [selectedFilmId, vorstellungen, selectedKategorie]);
 
     //  Summe berechnen
     useEffect(() => {
@@ -100,6 +100,7 @@ const Buchung = () => {
                 kundenEmail: kundenEmail,
             },
         };
+        console.log("Sende Buchungs-Payload:", payload);
         try {
             const response = await fetch("http://localhost:8080/buchung/anlegen", {
                 method: "POST",
@@ -111,7 +112,9 @@ const Buchung = () => {
             if (!response.ok) {
                 throw new Error(result.error || "Fehler beim Senden des Buchungs-Commands");
             }
-            alert(result.message);
+            alert("Buchung erfolgreich! Buchungsnummer: " + result.buchungsnummer);
+            console.log("result: ", result.message);
+            setBuchungsnummer(result.buchungsnummer);
         } catch (error) {
             console.error("Fehler:", error);
             alert("Fehler beim Buchen: " + error.message);

@@ -1,5 +1,6 @@
 package com.kino.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -30,5 +31,6 @@ public class Benutzer {
     private Rolle rolle;
 
     @OneToMany(mappedBy = "benutzer", cascade = CascadeType.ALL)
+    @JsonIgnore
     private List<Buchung> buchungen;
 }

@@ -144,7 +144,8 @@ public class VorstellungController {
      * Sendet einen RPC-Aufruf mit dem Command "VORSTELLUNG_VERFUEGBAR".
      */
     @GetMapping("/{id}/verfuegbar")
-    public ResponseEntity<?> getVerfuegbarePlaetze(@PathVariable("id") Long id) {
+    public ResponseEntity<?> getVerfuegbarePlaetze(@PathVariable("id") Long id,
+                                                   @RequestParam("kategorie") String kategorie) {
         try {
             // Nachricht bauen
             Map<String, Object> messageMap = new HashMap<>();
@@ -152,25 +153,24 @@ public class VorstellungController {
 
             Map<String, Object> payload = new HashMap<>();
             payload.put("id", id);
+            payload.put("kategorie", kategorie);
             messageMap.put("payload", payload);
 
-            // RPC-Aufruf an die Queue "rpcCommandQueue"
+            // RPC-Aufruf an die rpcCommandQueue
             Object responseObj = rabbitTemplate.convertSendAndReceive("", "rpcCommandQueue", messageMap);
             if (responseObj == null) {
                 throw new RuntimeException("Keine Antwort vom RPC erhalten!");
             }
 
-            // JSON-String -> Map<String,Integer>
+            // Antwort (JSON-String) in Map<String,Integer> umwandeln
             String jsonResponse = responseObj.toString();
             Map<String, Integer> verfuegbarePlaetze =
                     objectMapper.readValue(jsonResponse, new TypeReference<Map<String, Integer>>() {});
-
-            return ResponseEntity.ok(verfuegbarePlaetze); // => { "freiePlaetze": 12 }
+            return ResponseEntity.ok(verfuegbarePlaetze);
         } catch (Exception e) {
             e.printStackTrace();
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body(Collections.singletonMap("error", e.getMessage()));
         }
     }
-
 }

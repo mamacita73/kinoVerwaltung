@@ -97,7 +97,7 @@ public class VorstellungService {
 
     // Verfügbare Sitzplätze berechnen
     @Transactional
-    public Map<String, Integer> getFreiePlaetze(Long vorstellungId) {
+    public Map<String, Integer> getFreiePlaetze(Long vorstellungId, String kategorie) {
         //  Vorstellung abrufen
         Vorstellung v = vorstellungRepository
                 .findById(vorstellungId)
@@ -109,11 +109,12 @@ public class VorstellungService {
             throw new RuntimeException("Saal ist nicht freigegeben!");
         }
 
-        // freie Sitze zählen
+        //  Nur freie Sitze zählen, die zur angegebenen Kategorie passen
         int count = 0;
         for (Sitzreihe reihe : saal.getSitzreihen()) {
             for (Sitz sitz : reihe.getSitze()) {
-                if (sitz.getStatus() == Sitzstatus.FREI) {
+                if (sitz.getStatus() == Sitzstatus.FREI &&
+                        sitz.getKategorie().name().equalsIgnoreCase(kategorie)) {
                     count++;
                 }
             }

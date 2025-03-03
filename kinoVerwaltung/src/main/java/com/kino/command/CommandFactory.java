@@ -112,6 +112,7 @@ public class CommandFactory {
                     String kategorie = (String) payload.get("kategorie");
                     int anzahl = ((Number) payload.get("anzahl")).intValue();
                     String kundenEmail = (String) payload.get("kundenEmail");
+                    // Die Buchung wird angelegt und als Objekt zurückgegeben
                     return buchungService.buchungAnlegen(vorstellungId, kategorie, anzahl, kundenEmail);
                 });
 
@@ -317,9 +318,8 @@ public class CommandFactory {
                 return new GenericCommand<Map<String, Integer>>(() -> {
                     System.out.println("=== [CommandFactory] Erstelle VORSTELLUNG_VERFUEGBAR-Command ===");
                     Long id = ((Number) payload.get("id")).longValue();
-
-                    // Rufe die @Transactional-Methode auf:
-                    return vorstellungService.getFreiePlaetze(id);
+                    String kategorie = (String) payload.get("kategorie"); // Kategorie aus dem Payload
+                    return vorstellungService.getFreiePlaetze(id, kategorie);
                 });
 
 
