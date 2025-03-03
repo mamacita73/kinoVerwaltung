@@ -173,7 +173,7 @@ public class CommandFactory {
                     Reservierung r = reservierungRepository.findById(reservierungId)
                             .orElseThrow(() -> new RuntimeException("Reservierung nicht gefunden"));
 
-                    // 1) Sitze freigeben: Setze alle zugeordneten Sitze, die RESERVIERT sind, auf FREI
+                    //  Sitze freigeben: Setze alle zugeordneten Sitze, die RESERVIERT sind, auf FREI
                     if (r.getReservierungSitze() != null) {
                         for (ReservierungSitz rs : r.getReservierungSitze()) {
                             if (rs.getSitz().getStatus() == Sitzstatus.RESERVIERT) {
@@ -182,7 +182,7 @@ public class CommandFactory {
                         }
                     }
 
-                    // 2) Reservierung auf "STORNIERT" setzen
+                    // Reservierung auf "STORNIERT" setzen
                     r.setStatus("STORNIERT");
                     reservierungRepository.save(r);
 
