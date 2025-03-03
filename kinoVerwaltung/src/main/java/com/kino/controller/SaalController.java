@@ -22,14 +22,24 @@ import java.util.stream.Collectors;
 @CrossOrigin()
 public class SaalController {
 
-    @Autowired
-    private SaalService saalService;
+    private final SaalService saalService;
+    private final RabbitTemplate rabbitTemplate;
+    private final ObjectMapper objectMapper;
+    private final AsyncCommandSender asyncCommandSender;
 
+    //Kontruktor
     @Autowired
-    private RabbitTemplate rabbitTemplate;
+    public SaalController(
+            SaalService saalService,
+            RabbitTemplate rabbitTemplate,
+            ObjectMapper objectMapper,
+            AsyncCommandSender asyncCommandSender) {
+        this.saalService = saalService;
+        this.rabbitTemplate = rabbitTemplate;
+        this.objectMapper =  objectMapper;
+        this.asyncCommandSender = asyncCommandSender;
+    }
 
-    @Autowired
-    private ObjectMapper objectMapper;
 
     @GetMapping
     @CrossOrigin
@@ -61,7 +71,7 @@ public class SaalController {
     public ResponseEntity<?> createSaal(@RequestBody Map<String, Object> requestBody) {
         try {
             // Sende den Command asynchron an RabbitMQ
-            AsyncCommandSender.sendCommand("SAAL_WRITE", (Map<String, Object>) requestBody.get("payload"));
+            asyncCommandSender.sendCommand("SAAL_WRITE", (Map<String, Object>) requestBody.get("payload"));
             // Rückmeldung, dass der Command gesendet wurde.
             Map<String, String> response = new HashMap<>();
             response.put("success", "true");

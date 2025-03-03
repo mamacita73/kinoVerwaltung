@@ -20,31 +20,21 @@ public class RpcCommandReceiver {
         this.commandFactory = commandFactory;
     }
 
-    /**
-     * Listener für die "rpcCommandQueue".
-     * Empfängt ein JSON-String, führt das Command aus und gibt ein JSON-Result zurück.
-     */
     @RabbitListener(queues = "rpcCommandQueue")
-    public String handleRpcCommand(String message) {
+    public String handleRpcCommand(Map<String, Object> msgMap) {
         System.out.println("=== [RpcCommandReceiver] Nachricht empfangen ===");
-        System.out.println("Nachricht (String): " + message);
+        System.out.println("Nachricht (Map): " + msgMap);
         try {
-            // JSON -> Map
-            Map<?, ?> msgMap = objectMapper.readValue(message, Map.class);
-
             String commandType = (String) msgMap.get("command");
             Map<String, Object> payload = (Map<String, Object>) msgMap.get("payload");
+            System.out.println("=== [RpcCommandReceiver] Deserialisierte Nachricht: " + msgMap);
+            System.out.println("=== [RpcCommandReceiver] Payload empfangen: " + payload);
 
-            // Command ausführen
             Command<?> cmd = commandFactory.createCommand(commandType, payload);
             Object result = cmd.execute();
-
-            // result als JSON zurück
             return objectMapper.writeValueAsString(result);
-
         } catch (Exception e) {
             e.printStackTrace();
-            // Fehler-Map bauen
             Map<String, String> errMap = new HashMap<>();
             errMap.put("error", e.getMessage());
             try {

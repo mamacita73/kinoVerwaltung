@@ -28,13 +28,24 @@ import java.util.stream.Collectors;
 @CrossOrigin
 public class VorstellungController {
 
-    @Autowired
-    private VorstellungRepository vorstellungRepository;
 
-    @Autowired
-    private RabbitTemplate rabbitTemplate;
-    @Autowired
-    private ObjectMapper objectMapper;
+    private final VorstellungRepository vorstellungRepository;
+    private final RabbitTemplate rabbitTemplate;
+    private final  ObjectMapper objectMapper;
+    private final AsyncCommandSender asyncCommandSender;
+
+    public VorstellungController(VorstellungRepository vorstellungRepository,
+                                 RabbitTemplate rabbitTemplate,
+                                 ObjectMapper objectMapper,
+                                 AsyncCommandSender asyncCommandSender
+                                 ) {
+        this.vorstellungRepository = vorstellungRepository;
+        this.rabbitTemplate = rabbitTemplate;
+        this.objectMapper = objectMapper;
+
+        this.asyncCommandSender = asyncCommandSender;
+
+    }
 
 
     /**
@@ -60,7 +71,7 @@ public class VorstellungController {
                 payload = requestBody;
             }
             // Sende den Command asynchron an RabbitMQ
-            AsyncCommandSender.sendCommand("VORSTELLUNG_MULTI_WRITE", payload);
+            asyncCommandSender.sendCommand("VORSTELLUNG_MULTI_WRITE", payload);
             Map<String, String> response = Collections.singletonMap("message", "Multi-Vorstellungs-Command gesendet.");
             return ResponseEntity.ok(response);
         } catch (Exception e) {

@@ -21,7 +21,7 @@ public class GenericCommand<R> implements Command<R> {
             System.err.println("=== [GenericCommand] Fehler während execute(): " + e.getMessage() + " ===");
             e.printStackTrace();
         }
-        return result;  // Hier wird das Ergebnis zurückgegeben
+        return result; // Ergebnis zurückgeben
     }
 
     @Override

@@ -28,19 +28,33 @@ import java.util.Map;
 @RequestMapping("/reservierung")
 @CrossOrigin
 public class ReservierungController {
-    @Autowired
-    private ReservierungService reservierungService;
-    @Autowired
-    private VorstellungRepository vorstellungRepository;
-    @Autowired
-    private CommandFactory commandFactory;
-    @Autowired
-    private BenutzerRepository benutzerRepository;
-    @Autowired
-    private ReservierungRepository reservierungRepository;
-    @Autowired
-    private RabbitTemplate rabbitTemplate;  // Wird für RPC-Aufrufe genutzt
+    private final ReservierungService reservierungService;
+    private final VorstellungRepository vorstellungRepository;
+    private final CommandFactory commandFactory;
+    private final BenutzerRepository benutzerRepository;
+    private final ReservierungRepository reservierungRepository;
+    private final RabbitTemplate rabbitTemplate;  // kommt aus RabbitConfig
+    private final AsyncCommandSender asyncCommandSender; // <-- neu injizieren
 
+    // Konstruktor-Injektion aller benötigten Beans
+    @Autowired
+    public ReservierungController(
+            ReservierungService reservierungService,
+            VorstellungRepository vorstellungRepository,
+            CommandFactory commandFactory,
+            BenutzerRepository benutzerRepository,
+            ReservierungRepository reservierungRepository,
+            RabbitTemplate rabbitTemplate,
+            AsyncCommandSender asyncCommandSender // <-- hier injizieren
+    ) {
+        this.reservierungService = reservierungService;
+        this.vorstellungRepository = vorstellungRepository;
+        this.commandFactory = commandFactory;
+        this.benutzerRepository = benutzerRepository;
+        this.reservierungRepository = reservierungRepository;
+        this.rabbitTemplate = rabbitTemplate;
+        this.asyncCommandSender = asyncCommandSender; // <-- Instanz merken
+    }
 
     @GetMapping
     public List<Vorstellung> getAllVorstellungen() {
@@ -62,7 +76,7 @@ public class ReservierungController {
             requestBody.put("payload", payload);
 
             // Sende den Command asynchron über RabbitMQ
-            AsyncCommandSender.sendCommand("RESERVIERUNG_WRITE", payload);
+            asyncCommandSender.sendCommand("RESERVIERUNG_WRITE", payload);
 
             Map<String, String> response = new HashMap<>();
             response.put("success", "true");
@@ -81,7 +95,7 @@ public class ReservierungController {
         try {
             Map<String, Object> payload = new HashMap<>();
             payload.put("reservierungId", id);
-            AsyncCommandSender.sendCommand("RESERVIERUNG_CANCEL", payload);
+            asyncCommandSender.sendCommand("RESERVIERUNG_CANCEL", payload);
             return ResponseEntity.ok("Reservierungs-Cancellation-Command gesendet.");
         } catch (Exception e) {
             e.printStackTrace();
@@ -145,7 +159,7 @@ public class ReservierungController {
      *
      * Lädt alle Reservierungen eines Benutzers anhand seiner E-Mail,
      * ohne RabbitMQ (direkt per JPA-Abfrage).
-     */
+
     @GetMapping("/byEmail/{email}")
     public List<Reservierung> getReservierungenByEmail(@PathVariable String email) {
         // 1) Benutzer anhand E-Mail finden
@@ -156,5 +170,5 @@ public class ReservierungController {
         return reservierungRepository.findByBenutzerId(benutzer.getId());
     }
 
-
+     */
 }

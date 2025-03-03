@@ -16,4 +16,12 @@ public class ReservierungDTO {
     private String kundenEmail;
     private Long vorstellungId; // Die ID der Vorstellung, zu der diese Reservierung gehört
 
+    // Erweiterung
+    private String filmTitel;
+    private String startzeit;
+    private String endzeit;
+    private int anzahl; // reservierter sitze
+    private String sitzKategorie;
+
+
 }

@@ -52,24 +52,60 @@ public class CommandFactory {
     public Command<?> createCommand(String commandType, Map<String, Object> payload) {
         switch (commandType) {
             case "BENUTZER_WRITE":
-                // Schreibt die Daten eines Benutzers in die Datenbank
                 return new GenericCommand<Benutzer>(() -> {
                     Benutzer benutzer = new Benutzer();
-
                     benutzer.setBenutzername((String) payload.get("benutzername"));
                     benutzer.setEmail((String) payload.get("email"));
                     benutzer.setPasswort((String) payload.get("passwort"));
-                    benutzer.setId((Long) payload.get("id"));
                     String rolleString = (String) payload.get("rolle");
                     if (rolleString != null) {
                         benutzer.setRolle(Rolle.valueOf(rolleString.toUpperCase()));
                     } else {
-                        // Optional: Standardwert setzen oder Fehler werfen
                         benutzer.setRolle(Rolle.KUNDE);
                     }
-                    benutzer.setBuchungen((List<Buchung>) payload.get("buchungen"));
-
                     return benutzerRepository.save(benutzer);
+                });
+
+
+            case "LOGIN":
+                return new GenericCommand<Map<String, Object>>(() -> {
+                    //  Suche den Benutzer anhand der E-Mail
+                    String email = (String) payload.get("email");
+                    Optional<Benutzer> benutzerOpt = benutzerRepository.findByEmail(email);
+                    if (benutzerOpt.isPresent()) {
+                        Benutzer benutzer = benutzerOpt.get();
+                        Map<String, Object> result = new HashMap<>();
+                        result.put("success", "true");
+                        result.put("email", benutzer.getEmail());
+                        result.put("rolle", benutzer.getRolle().toString());
+                        return result;
+                    } else {
+                        Map<String, Object> result = new HashMap<>();
+                        result.put("success", "false");
+                        result.put("message", "Benutzer nicht gefunden.");
+                        return result;
+                    }
+                });
+
+
+            case "RESERVIERUNG_WRITE":
+                return new GenericCommand<Reservierung>(() -> {
+                    System.out.println("=== [CommandFactory] Erstelle RESERVIERUNG_WRITE-Command ===");
+                    Map<String, Object> innerPayload = (Map<String, Object>) payload.get("payload");
+                    if (innerPayload == null) {
+                        innerPayload = payload;
+                    }
+                    Long vorstellungId = ((Number) innerPayload.get("vorstellungId")).longValue();
+                    String kategorie = (String) innerPayload.get("kategorie");
+                    int anzahl = ((Number) innerPayload.get("anzahl")).intValue();
+                    String kundenEmail = (String) innerPayload.get("kundenEmail");
+                    String datum = (String) innerPayload.getOrDefault("datum", "2025-03-02");
+                    String status = (String) innerPayload.getOrDefault("status", "RESERVIERT");
+
+                    Reservierung savedRes = reservierungService.reservierungAnlegen(
+                            vorstellungId, kategorie, anzahl, kundenEmail, datum, status);
+                    System.out.println("=== [CommandFactory] Reservierung gespeichert, ID: " + savedRes.getId() + " ===");
+                    return savedRes;
                 });
 
 
@@ -87,38 +123,6 @@ public class CommandFactory {
                     return Optional.empty();
                 });
 
-
-
-
-            case "RESERVIERUNG_WRITE":
-                return new GenericCommand<Reservierung>(() -> {
-                    System.out.println("=== [CommandFactory] Erstelle RESERVIERUNG_WRITE-Command ===");
-
-                    Map<String, Object> innerPayload = (Map<String, Object>) payload.get("payload");
-                    if (innerPayload == null) {
-                        innerPayload = payload;
-                    }
-
-                    Long vorstellungId = ((Number) innerPayload.get("vorstellungId")).longValue();
-                    String kategorie = (String) innerPayload.get("kategorie");
-                    int anzahl = ((Number) innerPayload.get("anzahl")).intValue();
-                    String kundenEmail = (String) innerPayload.get("kundenEmail");
-                    String datum = (String) innerPayload.getOrDefault("datum", "2025-03-02");
-                    String status = (String) innerPayload.getOrDefault("status", "RESERVIERT");
-
-                    // Aufruf des @Transactional-Services
-                    Reservierung savedRes = reservierungService.reservierungAnlegen(
-                            vorstellungId,
-                            kategorie,
-                            anzahl,
-                            kundenEmail,
-                            datum,
-                            status
-                    );
-
-                    System.out.println("=== [CommandFactory] Reservierung gespeichert, ID: " + savedRes.getId() + " ===");
-                    return savedRes;
-                });
 
             case "RESERVIERUNG_QUERY_BY_EMAIL":
                 return new GenericCommand<List<Reservierung>>(() -> {
