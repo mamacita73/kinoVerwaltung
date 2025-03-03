@@ -1,5 +1,6 @@
 package com.kino.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -36,6 +37,7 @@ public class Buchung {
 
     @ManyToOne
     @JoinColumn(name = "benutzer_id", nullable = false)
+    @JsonIgnore
     private Benutzer benutzer;
 
     // Falls die Buchung aus einer Reservierung hervorgeht:
