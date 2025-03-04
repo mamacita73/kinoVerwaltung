@@ -17,8 +17,10 @@ const ReservierungDashboard = () => {
         if (!email) return;
         try {
             const res = await fetch(`http://localhost:8080/reservierung/byEmail/${email}`);
-            // Angenommen, der Endpoint liefert bereits ein JSON-Array
-            const data = await res.json();
+
+            const textData = await res.text();
+            const data = JSON.parse(textData);
+            console.log("textData", textData);
             console.log("Geladene Reservierungen:", data);
             setReservierungen(data);
         } catch (err) {

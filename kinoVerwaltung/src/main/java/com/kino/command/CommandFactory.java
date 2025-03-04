@@ -1,10 +1,7 @@
 package com.kino.command;
 
 
-import com.kino.dto.BuchungDTO;
-import com.kino.dto.MultiVorstellungenDTO;
-import com.kino.dto.SaeleMitVorstellungenDTO;
-import com.kino.dto.VorstellungDTO;
+import com.kino.dto.*;
 import com.kino.entity.*;
 import com.kino.repository.*;
 import com.kino.service.BuchungService;
@@ -153,18 +150,42 @@ public class CommandFactory {
 
 
             case "RESERVIERUNG_QUERY_BY_EMAIL":
-                return new GenericCommand<List<Reservierung>>(() -> {
+                // Gib jetzt einen GenericCommand<List<ReservierungDTO>> zurück
+                return new GenericCommand<List<ReservierungDTO>>(() -> {
                     System.out.println("=== [CommandFactory] RESERVIERUNG_QUERY_BY_EMAIL ===");
 
-                    // E-Mail validieren
-                    String email = (String) payload.get("kundenEmail");
-                    if (email == null || email.isEmpty()) {
+                    String emailVal = (String) payload.get("kundenEmail");
+                    if (emailVal == null || emailVal.isEmpty()) {
                         throw new IllegalArgumentException("kundenEmail fehlt!");
                     }
 
-                    // Service-Methode aufrufen
-                    return reservierungService.getReservierungenByEmail(email);
+                    // Laden der Entitäten
+                    List<Reservierung> reservierungen = reservierungService.getReservierungenByEmail(emailVal);
+
+                    // Umwandlung der Entitäten in DTOs
+                    List<ReservierungDTO> dtoList = new java.util.ArrayList<>();
+                    for (Reservierung r : reservierungen) {
+                        ReservierungDTO dto = new ReservierungDTO();
+                        dto.setId(r.getId());
+                        dto.setReservierungsnummer(r.getReservierungsnummer());
+                        dto.setDatum(r.getDatum());
+                        dto.setStatus(r.getStatus());
+                        dto.setKundenEmail(r.getKundenEmail());
+
+                        if (r.getVorstellung() != null) {
+                            dto.setVorstellungId(r.getVorstellung().getId());
+                            dto.setFilmTitel(r.getVorstellung().getFilmTitel());
+                            if (r.getVorstellung().getStartzeit() != null) {
+                                dto.setStartzeit(r.getVorstellung().getStartzeit().toString());
+                            }
+                        }
+
+                        dtoList.add(dto);
+                    }
+
+                    return dtoList;
                 });
+
 
 
             case "RESERVIERUNG_CANCEL":

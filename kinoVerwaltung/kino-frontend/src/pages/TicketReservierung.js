@@ -66,7 +66,8 @@ const TicketReservierung = () => {
         try {
             const response = await fetch("http://localhost:8080/reservierung/anlegen", {
                 method: "POST",
-                headers: { "Content-Type": "application/json" },
+                headers: { "Content-Type": "application/json",
+                           "X-User-Email": kundenEmail},
                 body: JSON.stringify(payload)
             });
             if (!response.ok) {
