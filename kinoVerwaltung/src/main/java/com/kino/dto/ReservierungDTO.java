@@ -1,6 +1,5 @@
 package com.kino.dto;
 
-
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -14,14 +13,12 @@ public class ReservierungDTO {
     private String datum;
     private String status;
     private String kundenEmail;
-    private Long vorstellungId; // Die ID der Vorstellung, zu der diese Reservierung gehört
-
-    // Erweiterung
+    private Long vorstellungId;
     private String filmTitel;
     private String startzeit;
-    private String endzeit;
-    private int anzahl; // reservierter sitze
-    private String sitzKategorie;
 
-
+    // Neue Felder:
+    private String kategorie;  // z. B. "PARKETT", "LOGE", ...
+    private int anzahl;        // Anzahl reservierter Sitze
+    private int summe;         // Gesamtpreis
 }

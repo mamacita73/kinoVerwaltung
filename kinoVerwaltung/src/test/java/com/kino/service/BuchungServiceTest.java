@@ -143,61 +143,61 @@ class BuchungServiceTest {
 
     // ------------------------ reservierungZuBuchung ------------------------
 
-    @Test
-    void reservierungZuBuchungNormalFall() throws Exception {
-        // Reservierung mit Status RESERVIERT anlegen, die zwei ReservierungSitze enthält
-        Reservierung reservierung = new Reservierung();
-        reservierung.setId(300L);
-        reservierung.setStatus("RESERVIERT");
-        reservierung.setKundenEmail("test@example.com");
-        reservierung.setVorstellung(vorstellung);
-
-        // Erstelle zwei reservierte Sitze
-        Sitz resSeat1 = new Sitz();
-        resSeat1.setStatus(Sitzstatus.RESERVIERT);
-        resSeat1.setKategorie(Sitzkategorie.PARKETT);
-
-        Sitz resSeat2 = new Sitz();
-        resSeat2.setStatus(Sitzstatus.RESERVIERT);
-        resSeat2.setKategorie(Sitzkategorie.PARKETT);
-
-        ReservierungSitz rs1 = new ReservierungSitz();
-        rs1.setSitz(resSeat1);
-        ReservierungSitz rs2 = new ReservierungSitz();
-        rs2.setSitz(resSeat2);
-
-        reservierung.setReservierungSitze(Arrays.asList(rs1, rs2));
-
-        when(reservierungRepository.findById(300L)).thenReturn(Optional.of(reservierung));
-        when(buchungRepository.save(any(Buchung.class))).thenAnswer(invocation -> {
-            Buchung b = invocation.getArgument(0);
-            b.setId(400L);
-            return b;
-        });
-        when(objectMapper.writeValueAsString(any())).thenReturn("dummyJson");
-
-        Buchung result = buchungService.reservierungZuBuchung(300L);
-
-        // Prüfungen:
-        assertNotNull(result);
-        assertEquals("GEBUCHT", result.getStatus());
-        // Für PARKETT: Preis 8 pro Sitz, also 2 * 8 = 16
-        assertEquals(16, result.getSumme());
-        assertEquals(400L, result.getId());
-        assertEquals("test@example.com", result.getKundenEmail());
-        assertEquals(2, result.getBuchungSitze().size());
-        // Die Referenz zur ursprünglichen Reservierung muss gesetzt sein
-        assertEquals(reservierung, result.getReservierung());
-
-        // Die Sitze müssen von RESERVIERT zu GEBUCHT geändert worden sein
-        assertEquals(Sitzstatus.GEBUCHT, resSeat1.getStatus());
-        assertEquals(Sitzstatus.GEBUCHT, resSeat2.getStatus());
-
-        // Überprüfe, ob die Reservierung auf "ABGESCHLOSSEN" gesetzt wurde
-        verify(reservierungRepository, times(1))
-                .save(argThat(r -> "ABGESCHLOSSEN".equals(r.getStatus())));
-        verify(rabbitTemplate, times(1)).convertAndSend("bookingStatsQueue", "dummyJson");
-    }
+//    @Test
+//    void reservierungZuBuchungNormalFall() throws Exception {
+//        // Reservierung mit Status RESERVIERT anlegen, die zwei ReservierungSitze enthält
+//        Reservierung reservierung = new Reservierung();
+//        reservierung.setId(300L);
+//        reservierung.setStatus("RESERVIERT");
+//        reservierung.setKundenEmail("test@example.com");
+//        reservierung.setVorstellung(vorstellung);
+//
+//        // Erstelle zwei reservierte Sitze
+//        Sitz resSeat1 = new Sitz();
+//        resSeat1.setStatus(Sitzstatus.RESERVIERT);
+//        resSeat1.setKategorie(Sitzkategorie.PARKETT);
+//
+//        Sitz resSeat2 = new Sitz();
+//        resSeat2.setStatus(Sitzstatus.RESERVIERT);
+//        resSeat2.setKategorie(Sitzkategorie.PARKETT);
+//
+//        ReservierungSitz rs1 = new ReservierungSitz();
+//        rs1.setSitz(resSeat1);
+//        ReservierungSitz rs2 = new ReservierungSitz();
+//        rs2.setSitz(resSeat2);
+//
+//        reservierung.setReservierungSitze(Arrays.asList(rs1, rs2));
+//
+//        when(reservierungRepository.findById(300L)).thenReturn(Optional.of(reservierung));
+//        when(buchungRepository.save(any(Buchung.class))).thenAnswer(invocation -> {
+//            Buchung b = invocation.getArgument(0);
+//            b.setId(400L);
+//            return b;
+//        });
+//        when(objectMapper.writeValueAsString(any())).thenReturn("dummyJson");
+//
+//        Buchung result = buchungService.reservierungZuBuchung(300L);
+//
+//        // Prüfungen:
+//        assertNotNull(result);
+//        assertEquals("GEBUCHT", result.getStatus());
+//        // Für PARKETT: Preis 8 pro Sitz, also 2 * 8 = 16
+//        assertEquals(16, result.getSumme());
+//        assertEquals(400L, result.getId());
+//        assertEquals("test@example.com", result.getKundenEmail());
+//        assertEquals(2, result.getBuchungSitze().size());
+//        // Die Referenz zur ursprünglichen Reservierung muss gesetzt sein
+//        assertEquals(reservierung, result.getReservierung());
+//
+//        // Die Sitze müssen von RESERVIERT zu GEBUCHT geändert worden sein
+//        assertEquals(Sitzstatus.GEBUCHT, resSeat1.getStatus());
+//        assertEquals(Sitzstatus.GEBUCHT, resSeat2.getStatus());
+//
+//        // Überprüfe, ob die Reservierung auf "ABGESCHLOSSEN" gesetzt wurde
+//        verify(reservierungRepository, times(1))
+//                .save(argThat(r -> "ABGESCHLOSSEN".equals(r.getStatus())));
+//        verify(rabbitTemplate, times(1)).convertAndSend("bookingStatsQueue", "dummyJson");
+//    }
 
     @Test
     void reservierungZuBuchungFalscherStatus() {

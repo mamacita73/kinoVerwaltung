@@ -48,6 +48,6 @@ public class Reservierung {
     @JoinColumn(name = "vorstellung_id", nullable = false)
     private Vorstellung vorstellung;
 
-    @OneToMany(mappedBy = "reservierung", cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "reservierung", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<ReservierungSitz> reservierungSitze;
 }

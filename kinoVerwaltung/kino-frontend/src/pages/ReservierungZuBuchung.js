@@ -44,9 +44,9 @@ const ReservierungZuBuchung = () => {
                 throw new Error("Fehler bei der Umwandlung in eine Buchung");
             }
             const result = await response.json();
-            alert("Buchung erfolgreich: " + result.message);
-            // Optional: setze eventuell die Summe, falls vom Server zurückgegeben
+            alert("Buchung erfolgreich! Buchungsnummer: " + result.buchungsnummer);
             if (result.summe) setSumme(result.summe + "€");
+
         } catch (error) {
             console.error("Fehler:", error);
             alert("Fehler beim Buchen: " + error.message);

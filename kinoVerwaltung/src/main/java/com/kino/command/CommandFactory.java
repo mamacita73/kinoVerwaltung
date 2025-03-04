@@ -125,10 +125,18 @@ public class CommandFactory {
                 });
 
             case "RESERVIERUNG_BUCHEN":
-                return new GenericCommand<Buchung>(() -> {
+                return new GenericCommand<BuchungDTO>(() -> {
                     Long reservierungId = ((Number) payload.get("reservierungId")).longValue();
-                    return buchungService.reservierungZuBuchung(reservierungId);
+                    Buchung buchung = buchungService.reservierungZuBuchung(reservierungId);
+
+                    BuchungDTO dto = new BuchungDTO();
+                    dto.setBuchungsnummer(buchung.getBuchungsnummer());
+                    dto.setStatus(buchung.getStatus());
+                    dto.setSumme(buchung.getSumme());
+
+                    return dto;
                 });
+
 
 
 
@@ -150,7 +158,6 @@ public class CommandFactory {
 
 
             case "RESERVIERUNG_QUERY_BY_EMAIL":
-                // Gib jetzt einen GenericCommand<List<ReservierungDTO>> zurück
                 return new GenericCommand<List<ReservierungDTO>>(() -> {
                     System.out.println("=== [CommandFactory] RESERVIERUNG_QUERY_BY_EMAIL ===");
 
@@ -159,10 +166,10 @@ public class CommandFactory {
                         throw new IllegalArgumentException("kundenEmail fehlt!");
                     }
 
-                    // Laden der Entitäten
-                    List<Reservierung> reservierungen = reservierungService.getReservierungenByEmail(emailVal);
+                    // 1) Reservierungen laden
+                    List<Reservierung> reservierungen = reservierungService.getReservierungenByEmailPerSitze(emailVal);
 
-                    // Umwandlung der Entitäten in DTOs
+                    // 2) Entities -> DTOs
                     List<ReservierungDTO> dtoList = new java.util.ArrayList<>();
                     for (Reservierung r : reservierungen) {
                         ReservierungDTO dto = new ReservierungDTO();
@@ -172,6 +179,7 @@ public class CommandFactory {
                         dto.setStatus(r.getStatus());
                         dto.setKundenEmail(r.getKundenEmail());
 
+                        // Vorstellung (Film)
                         if (r.getVorstellung() != null) {
                             dto.setVorstellungId(r.getVorstellung().getId());
                             dto.setFilmTitel(r.getVorstellung().getFilmTitel());
@@ -180,11 +188,35 @@ public class CommandFactory {
                             }
                         }
 
+                        // 3) Kategorie, Anzahl und Summe aus den Sitz-Objekten ermitteln
+                        List<ReservierungSitz> sitzListe = r.getReservierungSitze();
+                        dto.setAnzahl(sitzListe.size()); // Anzahl Sitz-Einträge = Anzahl reservierter Plätze
+
+                        // Falls alle Sitze dieselbe Kategorie haben, nimm einfach die erste
+                        String cat = null;
+                        int summe = 0;
+                        for (ReservierungSitz rs : sitzListe) {
+                            Sitz s = rs.getSitz();
+                            // Setze die Kategorie nur einmal (falls du nur EINE pro Reservierung hast)
+                            if (cat == null && s != null && s.getKategorie() != null) {
+                                cat = s.getKategorie().name();
+                            }
+
+                            // Preise berechnen über den BuchungService
+                            // (Diesen hast du als Feld in der CommandFactory: buchungService)
+                            if (s != null && s.getKategorie() != null) {
+                                summe += buchungService.calculateSeatPrice(s.getKategorie());
+                            }
+                        }
+                        dto.setKategorie(cat != null ? cat : "-");
+                        dto.setSumme(summe);
+
                         dtoList.add(dto);
                     }
 
                     return dtoList;
                 });
+
 
 
 

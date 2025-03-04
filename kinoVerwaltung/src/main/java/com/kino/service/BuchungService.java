@@ -103,7 +103,7 @@ public class BuchungService {
             throw new RuntimeException("Reservierung ist nicht im Status RESERVIERT!");
         }
 
-        // 2) Prüfen, ob alle Sitze noch RESERVIERT sind
+        // 2) Alle zugehörigen Sitze prüfen und in einer Liste sammeln
         List<Sitz> sitze = new ArrayList<>();
         for (ReservierungSitz rs : res.getReservierungSitze()) {
             Sitz s = rs.getSitz();
@@ -113,7 +113,7 @@ public class BuchungService {
             sitze.add(s);
         }
 
-        // 3) Sitzstatus auf GEBUCHT setzen
+        // 3) Sitzstatus auf GEBUCHT setzen und Gesamtpreis berechnen
         int totalPrice = 0;
         List<BuchungSitz> buchungSitze = new ArrayList<>();
         for (Sitz s : sitze) {
@@ -126,14 +126,26 @@ public class BuchungService {
             buchungSitze.add(bs);
         }
 
-        // 4) Neue Buchung anlegen
+        // 4) Neue Buchung anlegen (ohne Referenz auf die Reservierung)
         Buchung buchung = new Buchung();
         buchung.setStatus("GEBUCHT");
         buchung.setKundenEmail(res.getKundenEmail());
         buchung.setSumme(totalPrice);
-        buchung.setBuchungsnummer(generateBuchungsnummer());
+
+        // Buchungsnummer: Reservierungsnummer + 1 (numerisch interpretiert)
+        try {
+            long resNr = Long.parseLong(res.getReservierungsnummer());
+            buchung.setBuchungsnummer(String.valueOf(resNr + 1));
+        } catch (NumberFormatException e) {
+            throw new RuntimeException("Reservierungsnummer hat kein gültiges Format!");
+        }
+
         buchung.setVorstellung(res.getVorstellung());
-        buchung.setReservierung(res); // Referenz zur alten Reservierung
+
+        // WICHTIG: Den Benutzer setzen (aus der ReservierungskundenEmail)
+        Benutzer benutzer = benutzerRepository.findByEmail(res.getKundenEmail())
+                .orElseThrow(() -> new RuntimeException("Benutzer nicht gefunden!"));
+        buchung.setBenutzer(benutzer);
 
         for (BuchungSitz bs : buchungSitze) {
             bs.setBuchung(buchung);
@@ -142,15 +154,19 @@ public class BuchungService {
 
         Buchung saved = buchungRepository.save(buchung);
 
-        // 5) Reservierung abschließen
-        res.setStatus("ABGESCHLOSSEN");
-        reservierungRepository.save(res);
+        // 5) Reservierung löschen, damit sie nicht mehr angezeigt wird
+        res.getReservierungSitze().clear();
+        reservierungRepository.delete(res);
 
         sendStatsEvent(saved);
         return saved;
     }
 
-    private int calculateSeatPrice(Sitzkategorie kat) {
+
+
+
+
+    public int calculateSeatPrice(Sitzkategorie kat) {
         int base = 7;
         switch (kat) {
             case PARKETT: return base + 1;

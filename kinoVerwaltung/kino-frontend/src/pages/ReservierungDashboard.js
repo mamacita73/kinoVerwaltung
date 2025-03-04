@@ -17,7 +17,6 @@ const ReservierungDashboard = () => {
         if (!email) return;
         try {
             const res = await fetch(`http://localhost:8080/reservierung/byEmail/${email}`);
-
             const textData = await res.text();
             const data = JSON.parse(textData);
             console.log("textData", textData);
@@ -54,17 +53,16 @@ const ReservierungDashboard = () => {
 
     // Handler zum Buchen einer Reservierung (Umwandlung in Buchung)
     const handleBuchen = async (reservierungId) => {
-        // Hole die ausgewählte Zahlweise für diese Reservierung; falls nicht gewählt, setze einen Standardwert
         const zahlweise = selectedZahlweiseByRes[reservierungId] || "EC-KARTE";
 
-        // Baue die Payload für den Command "RESERVIERUNG_BUCHEN"
         const payload = {
             command: "RESERVIERUNG_BUCHEN",
             payload: {
                 reservierungId: reservierungId,
-                zahlweise: zahlweise, // Falls dein Backend das unterstützt
+                zahlweise: zahlweise,
             },
         };
+
         try {
             const res = await fetch("http://localhost:8080/buchung/reservierung", {
                 method: "POST",
@@ -77,8 +75,12 @@ const ReservierungDashboard = () => {
                 throw new Error(result.error || "Fehler beim Senden des Buchungs-Commands");
             }
             setMessage("Reservierung erfolgreich zu Buchung umgewandelt! Buchungsnummer: " + result.buchungsnummer);
-            // Reservierungen neu laden
+
+            // 1) Reservierungen neu laden
             loadReservierungen();
+
+            // 2) Optimistisches Update: Reservierung sofort aus dem State entfernen
+            setReservierungen((prev) => prev.filter((r) => r.id !== reservierungId));
         } catch (error) {
             console.error("Buchungsfehler:", error);
             setMessage("Fehler beim Buchen: " + error.message);

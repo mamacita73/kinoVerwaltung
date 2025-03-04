@@ -117,4 +117,11 @@ public class ReservierungService {
     public List<Reservierung> getReservierungenByEmail(String kundenEmail) {
         return reservierungRepository.findByKundenEmail(kundenEmail);
     }
+
+    @Transactional(readOnly = true)
+    public List<Reservierung> getReservierungenByEmailPerSitze(String kundenEmail) {
+        // Nutze die neue Fetch-Join-Methode
+        return reservierungRepository.findAllWithSitzeAndVorstellungByEmail(kundenEmail);
+    }
+
 }
