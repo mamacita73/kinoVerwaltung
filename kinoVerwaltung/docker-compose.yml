@@ -2,7 +2,7 @@
 
 services:
   frontend:
-    image: yeeterich/kino-frontend
+    build: ./kino-frontend
     ports:
       - "3000:3000"
     depends_on:
@@ -12,7 +12,7 @@ services:
     command: npm start
 
   backend:
-    image: yeeterich/kino-backend
+    build: .
     ports:
       - "8080:8080"
     depends_on:
