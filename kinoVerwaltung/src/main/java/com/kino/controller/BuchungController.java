@@ -72,21 +72,23 @@ public class BuchungController {
      * }
      */
     @PostMapping("/reservierung")
-    public ResponseEntity<Map<String, String>> reservierungZuBuchung(@RequestBody Map<String, Object> requestBody) {
+    public ResponseEntity<?> reservierungZuBuchung(@RequestBody Map<String, Object> requestBody) {
         try {
-            String commandType = (String) requestBody.get("command");
-            Map<String, Object> payload = (Map<String, Object>) requestBody.get("payload");
-
-            asyncCommandSender.sendCommand(commandType, payload);
-
-            Map<String, String> response = new HashMap<>();
-            response.put("message", "Reservierung in Buchung umgewandelt (Command gesendet).");
-            return ResponseEntity.ok(response);
+            // Sende synchron den RPC-Aufruf an die rpcCommandQueue
+            Object responseObj = rabbitTemplate.convertSendAndReceive("", "rpcCommandQueue", requestBody);
+            if (responseObj == null) {
+                throw new RuntimeException("Keine Antwort vom RPC erhalten!");
+            }
+            // Konvertiere die Antwort (JSON-String) in ein Map-Objekt
+            String jsonResponse = responseObj.toString();
+            Map<String, Object> result = objectMapper.readValue(
+                    jsonResponse, new com.fasterxml.jackson.core.type.TypeReference<Map<String, Object>>() {});
+            return ResponseEntity.ok(result);
         } catch (Exception e) {
             e.printStackTrace();
-            Map<String, String> err = new HashMap<>();
-            err.put("error", e.getMessage());
-            return ResponseEntity.badRequest().body(err);
+            return ResponseEntity.badRequest()
+                    .body(Collections.singletonMap("error", e.getMessage()));
         }
     }
+
 }
