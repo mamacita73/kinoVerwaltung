@@ -371,11 +371,22 @@ public class CommandFactory {
             });
 
             case "VORSTELLUNG_QUERY_ALL":
-                return new GenericCommand<List<Vorstellung>>(() -> {
+                return new GenericCommand<List<VorstellungDTO>>(() -> {
                     System.out.println("=== [CommandFactory] Erstelle VORSTELLUNG_QUERY_ALL-Command ===");
                     List<Vorstellung> list = vorstellungRepository.findAll();
-                    return list;
+                    List<VorstellungDTO> dtos = list.stream().map(v -> {
+                        VorstellungDTO dto = new VorstellungDTO();
+                        dto.setId(v.getId());
+                        dto.setFilmTitel(v.getFilmTitel());
+                        dto.setStartzeit(v.getStartzeit() != null ? v.getStartzeit().toString() : "");
+                        dto.setDauerMinuten(v.getDauerMinuten());
+                        // Hier die Saal-ID setzen:
+                        dto.setSaalId(v.getSaal() != null ? v.getSaal().getId() : null);
+                        return dto;
+                    }).collect(Collectors.toList());
+                    return dtos;
                 });
+
 
 
             case "VORSTELLUNG_VERFUEGBAR":

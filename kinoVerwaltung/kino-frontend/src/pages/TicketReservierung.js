@@ -99,7 +99,7 @@ const TicketReservierung = () => {
                     <option value="">-- Bitte wählen --</option>
                     {vorstellungen.map((v) => (
                         <option key={v.id} value={v.id}>
-                            {v.filmTitel} (SaalID={v.saal ? v.saal.id : "?"}), Start: {v.startzeit}
+                            {v.filmTitel} (SaalID={v.saalId != null ? v.saalId : "?"}), Start: {v.startzeit}
                         </option>
                     ))}
                 </select>
