@@ -17,6 +17,11 @@ const FilmDashboard = () => {
     // Summierte Einnahmen für den ausgewählten Film
     const [einnahmen, setEinnahmen] = useState("");
 
+    const handleGoToFilmPlanung = () => {
+        navigate("/SaalAnlegen");
+    };
+
+
     // Säle + Vorstellungen laden
     useEffect(() => {
         fetch("http://localhost:8080/saal/mitVorstellungen")
@@ -114,6 +119,9 @@ const FilmDashboard = () => {
                     readOnly
                 />
             </div>
+            <button className="button" onClick={handleGoToFilmPlanung}>
+                Film-Dashboard
+            </button>
         </div>
     );
 };
