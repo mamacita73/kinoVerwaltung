@@ -89,7 +89,9 @@ const TicketReservierung = () => {
         }
     };
 
-
+    const handleBack = () => {
+        navigate("/KundenDashboard");
+    };
     const handleZuReservierungen = () => {
         navigate("/ReservierungDashboard");
     };
@@ -125,9 +127,12 @@ const TicketReservierung = () => {
             {message && <p>{message}</p>}
             <div className="reservierung-footer-tr">
                 <label>Reservierungsnummer:</label>
-                <input type="text" value={reservierungsnummer} readOnly />
+                <input type="text" value={reservierungsnummer} readOnly/>
+                <div className="button-container-tr">
                 <button className="button-tr" onClick={handleReservierung}>Reservieren</button>
                 <button className="button-tr" onClick={handleZuReservierungen}>Zu den Reservierungen</button>
+                <button className="button-tr" onClick={handleBack}>Zurück</button>
+                </div>
             </div>
         </div>
     );
