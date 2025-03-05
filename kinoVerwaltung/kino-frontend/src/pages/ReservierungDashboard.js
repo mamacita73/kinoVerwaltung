@@ -104,7 +104,7 @@ const ReservierungDashboard = () => {
         <div className="container-rd">
             <h2>Meine Reservierungen</h2>
             <label>Kunden E-Mail</label>
-            <input type="email" value={email} readOnly />
+            <input type="email" value={email} readOnly/>
 
             <div className="layout-rd">
                 {message && <p className="message">{message}</p>}
@@ -154,15 +154,12 @@ const ReservierungDashboard = () => {
                                     </div>
                                     <div>
                                         <div className="button-container-rd">
-                                        <button className="button-rd" onClick={() => handleCancel(r.id)}>
-                                            Stornieren
-                                        </button>
-                                        <button className="button-rd" onClick={() => handleBuchen(r.id)}>
-                                            Buchen
-                                        </button>
-                                        <button className="button-rd" onClick={handleBack}>
-                                            Zurück
-                                        </button>
+                                            <button className="button-rd" onClick={() => handleCancel(r.id)}>
+                                                Stornieren
+                                            </button>
+                                            <button className="button-rd" onClick={() => handleBuchen(r.id)}>
+                                                Buchen
+                                            </button>
                                         </div>
                                     </div>
                                 </td>
@@ -175,7 +172,11 @@ const ReservierungDashboard = () => {
                     )}
                     </tbody>
                 </table>
+
             </div>
+            <button className="button-rd" onClick={handleBack}>
+                Zurück
+            </button>
         </div>
     );
 };

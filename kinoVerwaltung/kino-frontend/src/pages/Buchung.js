@@ -205,7 +205,7 @@ const Buchung = () => {
             </div>
 
             <div className="footer-b">
-                <button className="button-b" onClick={handleAbbrechen}>Abbrechen</button>
+                <button className="button-b" onClick={handleAbbrechen}>Zurück</button>
                 <button className="button-b" onClick={handleBuchen}>Buchen</button>
             </div>
         </div>

@@ -13,7 +13,7 @@ RUN npm install
 # Kopiere den restlichen Code
 COPY . .
 
-# Baue die Anwendung (falls es sich um React/Vite handelt)
+# Baue die Anwendung (React/Vite)
 RUN npm run build
 
 # Exponiere den Port für das Frontend

@@ -80,7 +80,6 @@ const MultiVorstellungAnlegen = () => {
             }
 
             const result = await response.json();
-            console.log("Vorstellungen erfolgreich angelegt:", result);
             setMessage("Vorstellungen wurden erfolgreich angelegt!");
             // Formular zurücksetzen
             setFilmTitel("");
@@ -146,7 +145,11 @@ const MultiVorstellungAnlegen = () => {
                         Speichern
                     </button>
                 </div>
-                {message && <p style={{ color: "red" }}p>{message}</p>}
+                {message && (
+                    <p style={{ color: message.includes("Fehler") ? "red" : "green" }}>
+                        {message}
+                    </p>
+                    )}
             </div>
         </div>
     );
