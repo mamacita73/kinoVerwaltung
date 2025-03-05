@@ -1,58 +1,82 @@
-/* Stellt sicher, dass die Seite zentriert ist */
-.reservierung-container-rd {
+/* Stellt sicher, dass die gesamte Seite zentriert ist*/
+.container-rd {
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
     min-height: 100vh;
+    width: 100%;
+    max-width: 1200px;
+    margin: 0 auto;
     text-align: center;
 }
 
-/* Grid-Layout für die Form */
-.form-grid-rd {
-    display: grid;
-    grid-template-columns: auto auto;
-    gap: 15px;
-    align-items: center;
+/* Wrapper für die Buttons + Tabelle */
+.layout-rd {
+    background-color: #dcdcdc;
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    gap: 40px;
     margin-top: 20px;
+    width: 100%;
+}
+
+
+/* Container für die Buttons */
+.button-container-rd {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 20px; /* Abstand zwischen den Buttons */
+    margin-top: 20px;
+}
+
+/* Stil für die Buttons */
+.button-rd {
+    background-color: #3498db;
+    color: #fff;
+    padding: 15px;
+    border: none;
+    cursor: pointer;
+    font-size: 18px;
+    width:250px;;
+    text-align: center;
+}
+
+/* Container für die Saal-Liste */
+.saal-container-rd {
     background-color: #dcdcdc;
     padding: 20px;
     border-radius: 8px;
     width: 100%;
-    max-width: 600px;
+    max-width: 800px;
+
 }
 
-/* Stellt sicher, dass Labels und Felder gut ausgerichtet sind */
-label-rd {
-    font-size: 16px;
-    font-weight: bold;
-    width: 60%;
+
+/* Tabelle anpassen */
+.table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 10px;
 }
 
-/* Eingabefelder und Dropdowns */
-input-rd, select-rd {
-    padding: 5px;
-    font-size: 16px;
-    width: 150px;
+th, td {
+    padding: 25px;
+    border-bottom: 1px solid #ccc;
     text-align: center;
+
 }
 
-/* Footer für Reservierungsnummer und Button */
-.footer-rd {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    gap: 20px;
-    margin-top: 20px;
+/* Kopfzeile in der Tabelle */
+th {
+    font-weight: bold;
+    background-color: #f0f0f0;
 }
 
-/* Stil für den Reservieren-Button */
-.button-rd {
-    background-color: #3498db;
-    color: #fff;
-    padding: 10px;
-    border: none;
-    cursor: pointer;
-    font-size: 16px;
-    width: 250px;
+/* Dropdown-Feld */
+.select {
+    width: 100%;
+    padding: 5px;
 }

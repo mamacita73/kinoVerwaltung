@@ -75,26 +75,34 @@ public class ReservierungController {
             payload.put("kundenEmail", currentUserEmail);
             requestBody.put("payload", payload);
 
-            // Sende den Command asynchron über RabbitMQ
-            asyncCommandSender.sendCommand("RESERVIERUNG_WRITE", payload);
 
-            Map<String, String> response = new HashMap<>();
-            response.put("success", "true");
-            response.put("message", "Reservierungs-Command gesendet.");
-            return ResponseEntity.ok(response);
+            // Senden eines synchronen RPC-Aufrufs an die rpcCommandQueue
+            Object responseObj = rabbitTemplate.convertSendAndReceive("", "rpcCommandQueue", requestBody);
+            if (responseObj == null) {
+                throw new RuntimeException("Keine Antwort vom RPC erhalten!");
+            }
+
+            // responseObj ist ein JSON-String, das nun ein 'Reservierung' -Objekt repräsentiert
+            String jsonResponse = responseObj.toString();
+            return ResponseEntity.ok(jsonResponse);
         } catch (Exception e) {
             e.printStackTrace();
-            return ResponseEntity.status(409).body(Collections.singletonMap("message", e.getMessage()));
+            return ResponseEntity.status(409).body(Collections.singletonMap("error", e.getMessage()));
         }
     }
 
 
-    // PUT: Reservierung stornieren (Write-Command über RabbitMQ asynchron)
-    @PutMapping("/{id}/cancel")
-    public ResponseEntity<String> cancelReservierung(@PathVariable Long id) {
+    /**
+     * PUT /reservierung/{reservierungId}/cancel
+     * Canceln einer Reservierung anhand der internen numerischen ID.
+     * Im UI wird dennoch später die String-Reservierungsnummer angezeigt.
+     */
+    @PutMapping("/{reservierungId}/cancel")
+    public ResponseEntity<String> cancelReservierungById(@PathVariable("reservierungId") Long reservierungId) {
         try {
             Map<String, Object> payload = new HashMap<>();
-            payload.put("reservierungId", id);
+            // Hier wird die numerische ID übermittelt
+            payload.put("reservierungId", reservierungId);
             asyncCommandSender.sendCommand("RESERVIERUNG_CANCEL", payload);
             return ResponseEntity.ok("Reservierungs-Cancellation-Command gesendet.");
         } catch (Exception e) {
@@ -102,6 +110,7 @@ public class ReservierungController {
             return ResponseEntity.status(409).body(e.getMessage());
         }
     }
+
 
     // GET: Reservierungen eines Benutzers per RPC über RabbitMQ
     @GetMapping("/byEmail/{email}")
@@ -154,21 +163,4 @@ public class ReservierungController {
         throw new RuntimeException("Kein eingeloggter Benutzer gefunden.");
     }
 
-    /**
-     * GET /reservierung/byEmail/{email}
-     *
-     * Lädt alle Reservierungen eines Benutzers anhand seiner E-Mail,
-     * ohne RabbitMQ (direkt per JPA-Abfrage).
-
-    @GetMapping("/byEmail/{email}")
-    public List<Reservierung> getReservierungenByEmail(@PathVariable String email) {
-        // 1) Benutzer anhand E-Mail finden
-        Benutzer benutzer = benutzerRepository.findByEmail(email)
-                .orElseThrow(() -> new RuntimeException("Benutzer nicht gefunden mit E-Mail=" + email));
-
-        // 2) Alle Reservierungen dieses Benutzers laden
-        return reservierungRepository.findByBenutzerId(benutzer.getId());
-    }
-
-     */
 }

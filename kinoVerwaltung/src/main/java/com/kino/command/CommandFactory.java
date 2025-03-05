@@ -126,20 +126,18 @@ public class CommandFactory {
 
             case "RESERVIERUNG_BUCHEN":
                 return new GenericCommand<BuchungDTO>(() -> {
+                    // Verwende die numerische ID aus dem Payload
                     Long reservierungId = ((Number) payload.get("reservierungId")).longValue();
+                    // Wandelt die Reservierung anhand der numerischen ID in eine Buchung um
                     Buchung buchung = buchungService.reservierungZuBuchung(reservierungId);
 
+                    // DTO aufbauen, das auch die angezeigte Buchungsnummer enthält
                     BuchungDTO dto = new BuchungDTO();
                     dto.setBuchungsnummer(buchung.getBuchungsnummer());
                     dto.setStatus(buchung.getStatus());
                     dto.setSumme(buchung.getSumme());
-
                     return dto;
                 });
-
-
-
-
 
 
             case "BUCHUNG_QUERY":
@@ -218,28 +216,12 @@ public class CommandFactory {
                 });
 
 
-
-
             case "RESERVIERUNG_CANCEL":
                 return new GenericCommand<String>(() -> {
+                    // Hier ebenfalls die numerische ID aus dem Payload verwenden.
                     Long reservierungId = ((Number) payload.get("reservierungId")).longValue();
-                    Reservierung r = reservierungRepository.findById(reservierungId)
-                            .orElseThrow(() -> new RuntimeException("Reservierung nicht gefunden"));
-
-                    //  Sitze freigeben: Setze alle zugeordneten Sitze, die RESERVIERT sind, auf FREI
-                    if (r.getReservierungSitze() != null) {
-                        for (ReservierungSitz rs : r.getReservierungSitze()) {
-                            if (rs.getSitz().getStatus() == Sitzstatus.RESERVIERT) {
-                                rs.getSitz().setStatus(Sitzstatus.FREI);
-                            }
-                        }
-                    }
-
-                    // Reservierung auf "STORNIERT" setzen
-                    r.setStatus("STORNIERT");
-                    reservierungRepository.save(r);
-
-                    return "Reservierung " + r.getId() + " wurde storniert.";
+                    // Verwende die bereits vorhandene, @Transactional Service-Methode:
+                    return reservierungService.stornieren(reservierungId);
                 });
 
 

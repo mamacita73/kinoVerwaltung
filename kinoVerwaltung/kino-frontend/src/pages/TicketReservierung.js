@@ -74,9 +74,13 @@ const TicketReservierung = () => {
                 throw new Error("Fehler beim Anlegen der Reservierung");
             }
             const result = await response.json();
-            setMessage("Reservierung erfolgreich angelegt: " + JSON.stringify(result));
+            console.log("Reservierungsergebnis (JSON-Objekt):", result);
+
             if (result.reservierungsnummer) {
                 setReservierungsnummer(result.reservierungsnummer);
+                setMessage("Reservierung erfolgreich! Nr.: " + result.reservierungsnummer);
+            } else {
+                setMessage("Reservierung erfolgreich, aber keine Nummer gefunden.");
             }
         } catch (error) {
             console.error("Fehler:", error);
@@ -86,6 +90,9 @@ const TicketReservierung = () => {
 
     const handleZuReservierungen = () => {
         navigate("/ReservierungDashboard");
+    };
+    const handleBack = () => {
+        navigate("/KundenDashboard");
     };
 
     return (
@@ -119,9 +126,14 @@ const TicketReservierung = () => {
             {message && <p>{message}</p>}
             <div className="reservierung-footer-tr">
                 <label>Reservierungsnummer:</label>
-                <input type="text" value={reservierungsnummer} readOnly />
-                <button className="button-tr" onClick={handleReservierung}>Reservieren</button>
-                <button className="button-tr" onClick={handleZuReservierungen}>Zu den Reservierungen</button>
+                <input type="text" value={reservierungsnummer} readOnly/>
+
+
+                <div className="button-container-tr">
+                    <button className="button-tr" onClick={handleReservierung}>Reservieren</button>
+                    <button className="button-tr" onClick={handleZuReservierungen}>Zu den Reservierungen</button>
+                    <button className="button-tr" onClick={handleBack}>Zurück</button>
+                </div>
             </div>
         </div>
     );

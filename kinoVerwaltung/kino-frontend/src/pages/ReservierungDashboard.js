@@ -8,18 +8,17 @@ const ReservierungDashboard = () => {
     const [reservierungen, setReservierungen] = useState([]);
     const [message, setMessage] = useState("");
     const [email, setEmail] = useState(() => localStorage.getItem("loggedInEmail") || "");
-    // Für jede Reservierung speichern wir die aktuell gewählte Zahlweise (Mapping: reservierungId -> zahlweise)
+    // Mapping: id -> aktuell gewählte Zahlweise
     const [selectedZahlweiseByRes, setSelectedZahlweiseByRes] = useState({});
     const navigate = useNavigate();
 
-    // Laden der Reservierungen für die aktuell eingeloggte Email
+    // Reservierungen laden
     const loadReservierungen = async () => {
         if (!email) return;
         try {
             const res = await fetch(`http://localhost:8080/reservierung/byEmail/${email}`);
             const textData = await res.text();
             const data = JSON.parse(textData);
-            console.log("textData", textData);
             console.log("Geladene Reservierungen:", data);
             setReservierungen(data);
         } catch (err) {
@@ -31,9 +30,10 @@ const ReservierungDashboard = () => {
         loadReservierungen();
     }, [email]);
 
-    // Handler zum Stornieren einer Reservierung
+    // Handler zum Stornieren
     const handleCancel = async (reservierungId) => {
         try {
+            // Wir nutzen die numerische ID im Endpoint
             const res = await fetch(`http://localhost:8080/reservierung/${reservierungId}/cancel`, {
                 method: "PUT",
                 headers: { "Content-Type": "application/json" },
@@ -42,8 +42,7 @@ const ReservierungDashboard = () => {
                 throw new Error("Fehler beim Senden des Stornierungs-Commands");
             }
             const result = await res.text();
-            setMessage(result);
-            // Reservierungen neu laden
+            setMessage("Die Reservierung wurde erfolgreich storniert!");
             loadReservierungen();
         } catch (error) {
             console.error("Stornierungsfehler:", error);
@@ -51,13 +50,14 @@ const ReservierungDashboard = () => {
         }
     };
 
-    // Handler zum Buchen einer Reservierung (Umwandlung in Buchung)
+    // Handler zum Buchen
     const handleBuchen = async (reservierungId) => {
         const zahlweise = selectedZahlweiseByRes[reservierungId] || "EC-KARTE";
 
         const payload = {
             command: "RESERVIERUNG_BUCHEN",
             payload: {
+                // Numerische ID für das Backend
                 reservierungId: reservierungId,
                 zahlweise: zahlweise,
             },
@@ -74,12 +74,12 @@ const ReservierungDashboard = () => {
             if (!res.ok) {
                 throw new Error(result.error || "Fehler beim Senden des Buchungs-Commands");
             }
-            setMessage("Reservierung erfolgreich zu Buchung umgewandelt! Buchungsnummer: " + result.buchungsnummer);
+            setMessage(
+                "Reservierung erfolgreich zu Buchung umgewandelt! Buchungsnummer: " + result.buchungsnummer
+            );
 
-            // 1) Reservierungen neu laden
+            // State aktualisieren: neu laden + entfernen
             loadReservierungen();
-
-            // 2) Optimistisches Update: Reservierung sofort aus dem State entfernen
             setReservierungen((prev) => prev.filter((r) => r.id !== reservierungId));
         } catch (error) {
             console.error("Buchungsfehler:", error);
@@ -87,7 +87,7 @@ const ReservierungDashboard = () => {
         }
     };
 
-    // Handler, um die ausgewählte Zahlweise für eine Reservierung zu aktualisieren
+    // Handler zum Aktualisieren der Zahlweise
     const handleZahlweiseChange = (reservierungId, newZahlweise) => {
         setSelectedZahlweiseByRes((prev) => ({
             ...prev,
@@ -101,59 +101,81 @@ const ReservierungDashboard = () => {
     };
 
     return (
-        <div className="reservierung-container-rd">
+        <div className="container-rd">
             <h2>Meine Reservierungen</h2>
-            {message && <p className="message">{message}</p>}
-            <table className="table">
-                <thead>
-                <tr>
-                    <th>Reservierungs-ID</th>
-                    <th>Film</th>
-                    <th>Kategorie</th>
-                    <th>Anzahl Plätze</th>
-                    <th>Summe (€)</th>
-                    <th>Zahlweise</th>
-                    <th>Aktionen</th>
-                </tr>
-                </thead>
-                <tbody>
-                {reservierungen.length > 0 ? (
-                    reservierungen.map((r) => (
-                        <tr key={r.id}>
-                            <td>{r.id}</td>
-                            <td>{r.filmTitel || "-"}</td>
-                            <td>{r.kategorie || "-"}</td>
-                            <td>{r.anzahl || "-"}</td>
-                            <td>{r.summe || "-"}</td>
-                            <td>
-                                <select
-                                    value={selectedZahlweiseByRes[r.id] || ""}
-                                    onChange={(e) => handleZahlweiseChange(r.id, e.target.value)}
-                                >
-                                    <option value="">Zahlweise wählen</option>
-                                    {zahlweiseOptions.map((z, idx) => (
-                                        <option key={idx} value={z}>
-                                            {z}
-                                        </option>
-                                    ))}
-                                </select>
-                            </td>
-                            <td>
-                                <button onClick={() => handleCancel(r.id)}>Stornieren</button>
-                                <button onClick={() => handleBuchen(r.id)}>Buchen</button>
-                            </td>
-                        </tr>
-                    ))
-                ) : (
+            <label>Kunden E-Mail</label>
+            <input type="email" value={email} readOnly />
+
+            <div className="layout-rd">
+                {message && <p className="message">{message}</p>}
+
+                <table className="table">
+                    <thead>
                     <tr>
-                        <td colSpan="7">Keine Reservierungen gefunden.</td>
+                        <th>Reservierungsinformationen</th>
+                        <th>Optionen</th>
                     </tr>
-                )}
-                </tbody>
-            </table>
-            <button className="back-button" onClick={handleBack}>
-                Zurück
-            </button>
+                    </thead>
+                    <tbody>
+                    {reservierungen.length > 0 ? (
+                        reservierungen.map((r) => (
+                            <tr key={r.id}>
+                                <td>
+                                    {/* Hier zeigen wir die (String-) Reservierungsnummer an */}
+                                    <p>
+                                        <strong>Reservierungsnummer:</strong> {r.reservierungsnummer}
+                                    </p>
+                                    <p>
+                                        <strong>Film:</strong> {r.filmTitel || "-"}
+                                    </p>
+                                    <p>
+                                        <strong>Kategorie:</strong> {r.kategorie || "-"}
+                                    </p>
+                                    <p>
+                                        <strong>Anzahl Plätze:</strong> {r.anzahl || "-"}
+                                    </p>
+                                    <p>
+                                        <strong>Summe (€):</strong> {r.summe || "-"}
+                                    </p>
+                                </td>
+                                <td>
+                                    <div>
+                                        <select
+                                            value={selectedZahlweiseByRes[r.id] || ""}
+                                            onChange={(e) => handleZahlweiseChange(r.id, e.target.value)}
+                                        >
+                                            <option value="">Zahlweise wählen</option>
+                                            {zahlweiseOptions.map((z, idx) => (
+                                                <option key={idx} value={z}>
+                                                    {z}
+                                                </option>
+                                            ))}
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <div className="button-container-rd">
+                                        <button className="button-rd" onClick={() => handleCancel(r.id)}>
+                                            Stornieren
+                                        </button>
+                                        <button className="button-rd" onClick={() => handleBuchen(r.id)}>
+                                            Buchen
+                                        </button>
+                                        <button className="button-rd" onClick={handleBack}>
+                                            Zurück
+                                        </button>
+                                        </div>
+                                    </div>
+                                </td>
+                            </tr>
+                        ))
+                    ) : (
+                        <tr>
+                            <td colSpan="2">Keine Reservierungen gefunden.</td>
+                        </tr>
+                    )}
+                    </tbody>
+                </table>
+            </div>
         </div>
     );
 };
