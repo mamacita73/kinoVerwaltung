@@ -1,6 +1,7 @@
 package com.kino.service;
 
 import com.kino.entity.*;
+import com.kino.repository.BenutzerRepository;
 import com.kino.repository.ReservierungRepository;
 import com.kino.repository.SitzRepository;
 import com.kino.repository.VorstellungRepository;
@@ -27,9 +28,6 @@ public class ReservierungService {
         this.sitzRepository = sitzRepository;
     }
 
-    /**
-     * Erstellt eine neue Reservierung, wenn ausreichend freie Sitze vorhanden sind.
-     */
     @Transactional
     public Reservierung reservierungAnlegen(Long vorstellungId,
                                             String kategorie,
@@ -40,7 +38,7 @@ public class ReservierungService {
         Vorstellung vorstellung = vorstellungRepository.findById(vorstellungId)
                 .orElseThrow(() -> new IllegalArgumentException("Vorstellung mit ID " + vorstellungId + " nicht gefunden!"));
 
-        // Prüfe, ob die Vorstellung schon begonnen hat.
+        // Prüfe, ob die Vorstellung bereits begonnen hat.
         LocalDate reservationDate = LocalDate.parse(datum);
         LocalTime startzeit = vorstellung.getStartzeit();
         LocalDateTime presentationStart = LocalDateTime.of(reservationDate, startzeit);
@@ -63,7 +61,6 @@ public class ReservierungService {
         List<ReservierungSitz> rsList = new ArrayList<>();
         for (Sitz sitz : freieSitze) {
             sitz.setStatus(Sitzstatus.RESERVIERT);
-
             ReservierungSitz rs = new ReservierungSitz();
             rs.setSitz(sitz);
             rs.setReservierung(reservierung);
@@ -74,14 +71,10 @@ public class ReservierungService {
         return reservierungRepository.save(reservierung);
     }
 
-    /**
-     * Findet verfügbare Sitze einer bestimmten Kategorie in einer Vorstellung.
-     */
     private List<Sitz> findeFreieSitze(Vorstellung vorstellung, String kategorie, int anzahl) {
         if (!vorstellung.getSaal().isIstFreigegeben()) {
             throw new IllegalStateException("Saal ist nicht freigegeben!");
         }
-
         List<Sitz> freieSitze = new ArrayList<>();
         for (Sitzreihe sr : vorstellung.getSaal().getSitzreihen()) {
             freieSitze.addAll(sr.getSitze().stream()
@@ -89,50 +82,36 @@ public class ReservierungService {
                             sitz.getKategorie().name().equalsIgnoreCase(kategorie))
                     .limit(anzahl - freieSitze.size())
                     .toList());
-
             if (freieSitze.size() >= anzahl) break;
         }
         return freieSitze;
     }
 
-    /**
-     * Storniert eine Reservierung und gibt die Sitze wieder frei.
-     */
     @Transactional
     public String stornieren(Long reservierungId) {
         Reservierung reservierung = reservierungRepository.findById(reservierungId)
                 .orElseThrow(() -> new IllegalArgumentException("Reservierung nicht gefunden!"));
-
         reservierung.getReservierungSitze().forEach(rs -> {
             Sitz sitz = rs.getSitz();
             if (sitz.getStatus() == Sitzstatus.RESERVIERT) {
                 sitz.setStatus(Sitzstatus.FREI);
             }
         });
-
         reservierung.setStatus("STORNIERT");
         reservierungRepository.save(reservierung);
         return "Reservierung " + reservierung.getId() + " storniert.";
     }
 
-    /**
-     * Generiert eine zufällige Reservierungsnummer.
-     */
     private String generateReservierungsnummer() {
         return String.valueOf(10000 + new Random().nextInt(90000));
     }
 
-    /**
-     * Ruft alle Reservierungen eines Kunden basierend auf seiner E-Mail ab.
-     */
     public List<Reservierung> getReservierungenByEmail(String kundenEmail) {
         return reservierungRepository.findByKundenEmail(kundenEmail);
     }
 
     @Transactional(readOnly = true)
     public List<Reservierung> getReservierungenByEmailPerSitze(String kundenEmail) {
-        // Nutze die neue Fetch-Join-Methode
         return reservierungRepository.findAllWithSitzeAndVorstellungByEmail(kundenEmail);
     }
-
 }
