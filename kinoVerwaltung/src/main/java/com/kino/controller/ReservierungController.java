@@ -1,6 +1,7 @@
 package com.kino.controller;
 
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.kino.command.CommandFactory;
 import com.kino.entity.Benutzer;
 import com.kino.entity.Reservierung;
@@ -35,6 +36,7 @@ public class ReservierungController {
     private final ReservierungRepository reservierungRepository;
     private final RabbitTemplate rabbitTemplate;  // kommt aus RabbitConfig
     private final AsyncCommandSender asyncCommandSender; // <-- neu injizieren
+    private final ObjectMapper objectMapper;
 
     // Konstruktor-Injektion aller benötigten Beans
     @Autowired
@@ -45,7 +47,8 @@ public class ReservierungController {
             BenutzerRepository benutzerRepository,
             ReservierungRepository reservierungRepository,
             RabbitTemplate rabbitTemplate,
-            AsyncCommandSender asyncCommandSender // <-- hier injizieren
+            AsyncCommandSender asyncCommandSender,
+            ObjectMapper objectMapper
     ) {
         this.reservierungService = reservierungService;
         this.vorstellungRepository = vorstellungRepository;
@@ -54,6 +57,7 @@ public class ReservierungController {
         this.reservierungRepository = reservierungRepository;
         this.rabbitTemplate = rabbitTemplate;
         this.asyncCommandSender = asyncCommandSender; // <-- Instanz merken
+        this.objectMapper = objectMapper;
     }
 
     @GetMapping
@@ -63,30 +67,43 @@ public class ReservierungController {
 
     // Endpoint zum Anlegen einer neuen Reservierung
     @PostMapping("/anlegen")
-    public ResponseEntity<?> createReservierung(@RequestBody Map<String, Object> requestBody) {
+    public ResponseEntity<Map<String, String>> createReservierung(@RequestBody Map<String, Object> requestBody) {
         try {
-            // E-Mail des aktuell eingeloggten Benutzers ermitteln
+            // Extrahiere und setze die kundenEmail aus dem Request-Header (z.B. via getCurrentUserEmail())
             String currentUserEmail = getCurrentUserEmail();
             Map<String, Object> payload = (Map<String, Object>) requestBody.get("payload");
             if (payload == null) {
                 payload = new HashMap<>();
             }
-            // Überschreibe oder setze kundenEmail im Payload
             payload.put("kundenEmail", currentUserEmail);
-            requestBody.put("payload", payload);
 
-            // Sende den Command asynchron über RabbitMQ
-            asyncCommandSender.sendCommand("RESERVIERUNG_WRITE", payload);
+            // Hier synchron den Service aufrufen:
+            Long vorstellungId = ((Number) payload.get("vorstellungId")).longValue();
+            String kategorie = (String) payload.get("kategorie");
+            int anzahl = ((Number) payload.get("anzahl")).intValue();
+            String kundenEmail = (String) payload.get("kundenEmail");
+            String datum = (String) payload.get("datum");
+            String status = (String) payload.get("status");
+
+            Reservierung reservierung = reservierungService.reservierungAnlegen(
+                    vorstellungId, kategorie, anzahl, kundenEmail, datum, status
+            );
 
             Map<String, String> response = new HashMap<>();
             response.put("success", "true");
-            response.put("message", "Reservierungs-Command gesendet.");
+            response.put("message", "Reservierung erfolgreich angelegt.");
+            response.put("reservierungsnummer", reservierung.getReservierungsnummer());
             return ResponseEntity.ok(response);
+        } catch (IllegalStateException e) {
+            // Hier wird der spezifische Fehler (z.B. Vorstellung schon begonnen) als HTTP 400 zurückgegeben.
+            return ResponseEntity.badRequest().body(Collections.singletonMap("error", e.getMessage()));
         } catch (Exception e) {
             e.printStackTrace();
-            return ResponseEntity.status(409).body(Collections.singletonMap("message", e.getMessage()));
+            return ResponseEntity.status(409).body(Collections.singletonMap("error", e.getMessage()));
         }
     }
+
+
 
 
     // PUT: Reservierung stornieren (Write-Command über RabbitMQ asynchron)

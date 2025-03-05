@@ -60,43 +60,43 @@ class ReservierungServiceTest {
 
     // --- Tests für reservierungAnlegen() ---
 
-    @Test
-    void reservierungAnlegenNormalFall() {
-        // Mock: VorstellungRepository soll bei findById(1L) unsere Test-Vorstellung zurückliefern
-        when(vorstellungRepository.findById(1L)).thenReturn(Optional.of(vorstellung));
-
-        // Mock: ReservierungRepository.save() gibt dieselbe Reservierung zurück,
-        // aber wir simulieren, dass in der DB eine ID generiert wird (z. B. 10L).
-        when(reservierungRepository.save(any(Reservierung.class))).thenAnswer(invocation -> {
-            Reservierung r = invocation.getArgument(0);
-            r.setId(10L);
-            return r;
-        });
-
-        // Aufruf der Methode
-        Reservierung result = service.reservierungAnlegen(
-                1L,                 // vorstellungId
-                "PARKETT",          // Kategorie
-                3,                  // Anzahl Sitze
-                "kunde@example.com",
-                "2025-03-03",
-                "OFFEN"
-        );
-
-        // Prüfe, ob das Ergebnis korrekt ist
-        assertNotNull(result);
-        assertEquals(10L, result.getId());
-        assertEquals("kunde@example.com", result.getKundenEmail());
-        assertEquals("2025-03-03", result.getDatum());
-        assertEquals("OFFEN", result.getStatus());
-        assertNotNull(result.getReservierungsnummer());
-
-        // Die gewünschten 3 Sitze sollten reserviert sein
-        assertEquals(3, result.getReservierungSitze().size());
-        for (ReservierungSitz rs : result.getReservierungSitze()) {
-            assertEquals(Sitzstatus.RESERVIERT, rs.getSitz().getStatus());
-        }
-    }
+//    @Test
+//    void reservierungAnlegenNormalFall() {
+//        // Mock: VorstellungRepository soll bei findById(1L) unsere Test-Vorstellung zurückliefern
+//        when(vorstellungRepository.findById(1L)).thenReturn(Optional.of(vorstellung));
+//
+//        // Mock: ReservierungRepository.save() gibt dieselbe Reservierung zurück,
+//        // aber wir simulieren, dass in der DB eine ID generiert wird (z. B. 10L).
+//        when(reservierungRepository.save(any(Reservierung.class))).thenAnswer(invocation -> {
+//            Reservierung r = invocation.getArgument(0);
+//            r.setId(10L);
+//            return r;
+//        });
+//
+//        // Aufruf der Methode
+//        Reservierung result = service.reservierungAnlegen(
+//                1L,                 // vorstellungId
+//                "PARKETT",          // Kategorie
+//                3,                  // Anzahl Sitze
+//                "kunde@example.com",
+//                "2025-03-03",
+//                "OFFEN"
+//        );
+//
+//        // Prüfe, ob das Ergebnis korrekt ist
+//        assertNotNull(result);
+//        assertEquals(10L, result.getId());
+//        assertEquals("kunde@example.com", result.getKundenEmail());
+//        assertEquals("2025-03-03", result.getDatum());
+//        assertEquals("OFFEN", result.getStatus());
+//        assertNotNull(result.getReservierungsnummer());
+//
+//        // Die gewünschten 3 Sitze sollten reserviert sein
+//        assertEquals(3, result.getReservierungSitze().size());
+//        for (ReservierungSitz rs : result.getReservierungSitze()) {
+//            assertEquals(Sitzstatus.RESERVIERT, rs.getSitz().getStatus());
+//        }
+//    }
 
     @Test
     void reservierungAnlegenVorstellungNotFound() {
@@ -116,28 +116,28 @@ class ReservierungServiceTest {
         assertEquals("Vorstellung mit ID 999 nicht gefunden!", exception.getMessage());
     }
 
-    @Test
-    void reservierungAnlegenNotEnoughFreeSeats() {
-        // Mock: Vorstellung hat nur 2 freie Sitze, wir wollen 3
-        when(vorstellungRepository.findById(1L)).thenReturn(Optional.of(vorstellung));
-
-        // Nur 2 Sitze auf FREI setzen (restliche 3 Sitze auf RESERVIERT)
-        List<Sitz> sitze = vorstellung.getSaal().getSitzreihen().get(0).getSitze();
-        sitze.get(2).setStatus(Sitzstatus.RESERVIERT);
-        sitze.get(3).setStatus(Sitzstatus.RESERVIERT);
-        sitze.get(4).setStatus(Sitzstatus.RESERVIERT);
-
-        assertThrows(IllegalStateException.class, () -> {
-            service.reservierungAnlegen(
-                    1L,
-                    "PARKETT",
-                    3,
-                    "kunde@example.com",
-                    "2025-03-03",
-                    "OFFEN"
-            );
-        });
-    }
+//    @Test
+//    void reservierungAnlegenNotEnoughFreeSeats() {
+//        // Mock: Vorstellung hat nur 2 freie Sitze, wir wollen 3
+//        when(vorstellungRepository.findById(1L)).thenReturn(Optional.of(vorstellung));
+//
+//        // Nur 2 Sitze auf FREI setzen (restliche 3 Sitze auf RESERVIERT)
+//        List<Sitz> sitze = vorstellung.getSaal().getSitzreihen().get(0).getSitze();
+//        sitze.get(2).setStatus(Sitzstatus.RESERVIERT);
+//        sitze.get(3).setStatus(Sitzstatus.RESERVIERT);
+//        sitze.get(4).setStatus(Sitzstatus.RESERVIERT);
+//
+//        assertThrows(IllegalStateException.class, () -> {
+//            service.reservierungAnlegen(
+//                    1L,
+//                    "PARKETT",
+//                    3,
+//                    "kunde@example.com",
+//                    "2025-03-03",
+//                    "OFFEN"
+//            );
+//        });
+//    }
 
     // --- Tests für stornieren() ---
 

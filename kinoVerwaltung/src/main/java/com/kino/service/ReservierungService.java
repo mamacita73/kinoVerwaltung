@@ -7,6 +7,9 @@ import com.kino.repository.VorstellungRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.util.*;
 
 @Service
@@ -36,6 +39,14 @@ public class ReservierungService {
                                             String status) {
         Vorstellung vorstellung = vorstellungRepository.findById(vorstellungId)
                 .orElseThrow(() -> new IllegalArgumentException("Vorstellung mit ID " + vorstellungId + " nicht gefunden!"));
+
+        // Prüfe, ob die Vorstellung schon begonnen hat.
+        LocalDate reservationDate = LocalDate.parse(datum);
+        LocalTime startzeit = vorstellung.getStartzeit();
+        LocalDateTime presentationStart = LocalDateTime.of(reservationDate, startzeit);
+        if (LocalDateTime.now().isAfter(presentationStart)) {
+            throw new IllegalStateException("Die Vorstellung hat bereits begonnen oder ist vorbei!");
+        }
 
         List<Sitz> freieSitze = findeFreieSitze(vorstellung, kategorie, anzahl);
         if (freieSitze.size() < anzahl) {

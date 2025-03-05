@@ -66,15 +66,20 @@ const TicketReservierung = () => {
         try {
             const response = await fetch("http://localhost:8080/reservierung/anlegen", {
                 method: "POST",
-                headers: { "Content-Type": "application/json",
-                           "X-User-Email": kundenEmail},
+                headers: {
+                    "Content-Type": "application/json",
+                    "X-User-Email": kundenEmail
+                },
                 body: JSON.stringify(payload)
             });
+            let result;
             if (!response.ok) {
-                throw new Error("Fehler beim Anlegen der Reservierung");
+                result = await response.json();
+                throw new Error(result.error || "Fehler beim Anlegen der Reservierung");
+            } else {
+                result = await response.json();
             }
-            const result = await response.json();
-            setMessage("Reservierung erfolgreich angelegt: " + JSON.stringify(result));
+            setMessage("Reservierung erfolgreich angelegt: " + result.message);
             if (result.reservierungsnummer) {
                 setReservierungsnummer(result.reservierungsnummer);
             }
@@ -83,6 +88,7 @@ const TicketReservierung = () => {
             setMessage("Fehler beim Reservieren: " + error.message);
         }
     };
+
 
     const handleZuReservierungen = () => {
         navigate("/ReservierungDashboard");
