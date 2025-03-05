@@ -3,6 +3,7 @@ package com.kino.controller;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.kino.dto.MultiVorstellungenDTO;
 import com.kino.dto.VorstellungDTO;
 import com.kino.entity.Saal;
 import com.kino.entity.Sitz;
@@ -30,22 +31,24 @@ import java.util.stream.Collectors;
 public class VorstellungController {
 
 
+
     private final VorstellungRepository vorstellungRepository;
     private final RabbitTemplate rabbitTemplate;
-    private final  ObjectMapper objectMapper;
+    private final ObjectMapper objectMapper;
     private final AsyncCommandSender asyncCommandSender;
+    private final VorstellungService vorstellungService; // Neu: Service direkt injizieren
 
+    @Autowired
     public VorstellungController(VorstellungRepository vorstellungRepository,
                                  RabbitTemplate rabbitTemplate,
                                  ObjectMapper objectMapper,
-                                 AsyncCommandSender asyncCommandSender
-                                 ) {
+                                 AsyncCommandSender asyncCommandSender,
+                                 VorstellungService vorstellungService) { // VorstellungsService hier hinzufügen
         this.vorstellungRepository = vorstellungRepository;
         this.rabbitTemplate = rabbitTemplate;
         this.objectMapper = objectMapper;
-
         this.asyncCommandSender = asyncCommandSender;
-
+        this.vorstellungService = vorstellungService;
     }
 
 
@@ -81,27 +84,39 @@ public class VorstellungController {
 
     @PostMapping("/anlegenMulti")
     @CrossOrigin
-    public ResponseEntity<Map<String, String>> anlegenMehrere(@RequestBody Map<String, Object> requestBody) {
+    public ResponseEntity<?> anlegenMehrere(@RequestBody Map<String, Object> requestBody) {
         try {
-            //  Extract commandType + payload
-            String commandType = (String) requestBody.get("command");
+            // Payload extrahieren
             Map<String, Object> payload = (Map<String, Object>) requestBody.get("payload");
 
-            // Senden Sie asynchron den Command
-            asyncCommandSender.sendCommand(commandType, payload);
+            // Felder aus dem Payload auslesen
+            String filmTitel = (String) payload.get("filmTitel");
+            List<Long> saalIds = ((List<?>) payload.get("saalIds"))
+                    .stream().map(obj -> ((Number) obj).longValue())
+                    .collect(Collectors.toList());
+            List<String> startzeiten = ((List<?>) payload.get("startzeiten"))
+                    .stream().map(Object::toString)
+                    .collect(Collectors.toList());
+            int dauerMinuten = ((Number) payload.get("dauerMinuten")).intValue();
 
-            // Erfolgsmeldung
-            Map<String, String> response = new HashMap<>();
-            response.put("message", "Mehrfache Vorstellungen angelegt (Command gesendet).");
+            // MultiVorstellungenDTO aufbauen
+            MultiVorstellungenDTO dto = new MultiVorstellungenDTO(filmTitel, saalIds, startzeiten, dauerMinuten);
+
+            // Synchroner Aufruf: Die Methode wirft hier ggf. eine Exception (z. B. bei Zeitüberschneidung)
+            List<Vorstellung> result = vorstellungService.anlegenMehrereVorstellungen(dto);
+
+            // Erfolgsmeldung, wenn keine Exception aufgetreten ist
+            Map<String, Object> response = new HashMap<>();
+            response.put("message", "Vorstellungen wurden erfolgreich angelegt.");
+            response.put("result", result);
             return ResponseEntity.ok(response);
         } catch (Exception e) {
             e.printStackTrace();
-            Map<String, String> err = new HashMap<>();
-            err.put("error", e.getMessage());
-            return ResponseEntity.badRequest().body(err);
+            // Bei einer Exception (z. B. Zeitüberschneidung) wird der Fehler-Text zurückgegeben
+            return ResponseEntity.status(HttpStatus.CONFLICT)
+                    .body(Collections.singletonMap("error", e.getMessage()));
         }
     }
-
 
 
     /**

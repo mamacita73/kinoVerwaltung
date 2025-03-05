@@ -6,9 +6,10 @@ const MultiVorstellungAnlegen = () => {
     const [saele, setSaele] = useState([]);
     const [filmTitel, setFilmTitel] = useState("");
     const [dauerMinuten, setDauerMinuten] = useState(90);
-    // Wir speichern hier eine Liste von Paaren: { saalId, startzeit }
+    // Speichern von Aufführungen als Liste von Objekten { saalId, startzeit }
     const [auffuehrungen, setAuffuehrungen] = useState([{ saalId: "", startzeit: "" }]);
     const [message, setMessage] = useState("");
+    const [isError, setIsError] = useState(false);
     const navigate = useNavigate();
 
     // Säle laden
@@ -42,11 +43,13 @@ const MultiVorstellungAnlegen = () => {
     const handleSave = async () => {
         // Vorprüfungen: Filmtitel darf nicht leer sein und alle Aufführungen müssen ausgefüllt sein.
         if (!filmTitel) {
+            setIsError(true);
             setMessage("Bitte geben Sie einen Filmtitel ein.");
             return;
         }
         for (let i = 0; i < auffuehrungen.length; i++) {
             if (!auffuehrungen[i].saalId || !auffuehrungen[i].startzeit) {
+                setIsError(true);
                 setMessage("Bitte füllen Sie alle Aufführungsfelder aus.");
                 return;
             }
@@ -57,11 +60,11 @@ const MultiVorstellungAnlegen = () => {
 
         const payload = {
             command: "VORSTELLUNG_MULTI_WRITE",
-                payload: {
-                    filmTitel,
-                    dauerMinuten,
-                    saalIds,
-                     startzeiten
+            payload: {
+                filmTitel,
+                dauerMinuten,
+                saalIds,
+                startzeiten
             }
         };
 
@@ -78,16 +81,18 @@ const MultiVorstellungAnlegen = () => {
                 const serverError = await response.text();
                 throw new Error(serverError || "Fehler beim Anlegen der Vorstellungen");
             }
-
-            const result = await response.json();
+            await response.json();
+            // Erfolg: Status zurücksetzen
+            setIsError(false);
             setMessage("Vorstellungen wurden erfolgreich angelegt!");
-            // Formular zurücksetzen
             setFilmTitel("");
             setDauerMinuten(90);
             setAuffuehrungen([{ saalId: "", startzeit: "" }]);
         } catch (error) {
             console.error("Fehler:", error);
-            setMessage("Fehler beim Anlegen der Vorstellungen: " + error.message);
+            // Fehler wird direkt angezeigt – bspw. auch "Zeitüberschneidung! Es gibt schon eine Vorstellung von 11:00 bis 16:00 in Saal Saal 1"
+            setIsError(true);
+            setMessage(error.message);
         }
     };
 
@@ -146,10 +151,10 @@ const MultiVorstellungAnlegen = () => {
                     </button>
                 </div>
                 {message && (
-                    <p style={{ color: message.includes("Fehler") ? "red" : "green" }}>
+                    <p style={{ color: isError ? "red" : "green" }}>
                         {message}
                     </p>
-                    )}
+                )}
             </div>
         </div>
     );
