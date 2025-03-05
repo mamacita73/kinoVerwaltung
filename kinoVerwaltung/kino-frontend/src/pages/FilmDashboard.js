@@ -18,7 +18,7 @@ const FilmDashboard = () => {
     const [einnahmen, setEinnahmen] = useState("");
 
     const handleGoToFilmPlanung = () => {
-        navigate("/SaalAnlegen");
+        navigate("/FilmPlanung");
     };
 
 

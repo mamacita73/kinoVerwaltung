@@ -121,7 +121,7 @@ public class ReservierungController {
             // Command + Payload
             Map<String, Object> messageMap = new HashMap<>();
             messageMap.put("command", "RESERVIERUNG_QUERY_BY_EMAIL");
-
+        
             Map<String, Object> payload = new HashMap<>();
             payload.put("kundenEmail", email);
             messageMap.put("payload", payload);

@@ -17,10 +17,14 @@ public interface ReservierungRepository extends JpaRepository<Reservierung, Long
     List<Reservierung> findByStatus(String status);
     // Liefert eine einzelne Reservierung anhand der eindeutigen Reservierungsnummer
     Optional<Reservierung> findByReservierungsnummer(String reservierungsnummer);
-    @Query("SELECT DISTINCT r FROM Reservierung r " +
-            "LEFT JOIN FETCH r.reservierungSitze rs " +
-            "LEFT JOIN FETCH r.vorstellung " +
-            "WHERE r.kundenEmail = :email")
+    @Query("""
+   SELECT DISTINCT r
+   FROM Reservierung r
+     LEFT JOIN FETCH r.reservierungSitze rs
+     LEFT JOIN FETCH r.vorstellung v
+   WHERE r.kundenEmail = :email
+     AND r.status <> 'STORNIERT'
+""")
     List<Reservierung> findAllWithSitzeAndVorstellungByEmail(@Param("email") String email);
 
 }
