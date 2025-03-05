@@ -95,7 +95,7 @@ public class BuchungService {
      */
     @Transactional
     public Buchung reservierungZuBuchung(Long reservierungId) {
-        // 1) Reservierung laden
+        // Reservierung laden
         Reservierung res = reservierungRepository.findById(reservierungId)
                 .orElseThrow(() -> new RuntimeException("Reservierung nicht gefunden!"));
 
@@ -103,7 +103,7 @@ public class BuchungService {
             throw new RuntimeException("Reservierung ist nicht im Status RESERVIERT!");
         }
 
-        // 2) Alle zugehörigen Sitze prüfen und in einer Liste sammeln
+        // Alle zugehörigen Sitze prüfen und in einer Liste sammeln
         List<Sitz> sitze = new ArrayList<>();
         for (ReservierungSitz rs : res.getReservierungSitze()) {
             Sitz s = rs.getSitz();
@@ -113,7 +113,7 @@ public class BuchungService {
             sitze.add(s);
         }
 
-        // 3) Sitzstatus auf GEBUCHT setzen und Gesamtpreis berechnen
+        // Sitzstatus auf GEBUCHT setzen und Gesamtpreis berechnen
         int totalPrice = 0;
         List<BuchungSitz> buchungSitze = new ArrayList<>();
         for (Sitz s : sitze) {
@@ -126,7 +126,7 @@ public class BuchungService {
             buchungSitze.add(bs);
         }
 
-        // 4) Neue Buchung anlegen (ohne Referenz auf die Reservierung)
+        // Neue Buchung anlegen (ohne Referenz auf die Reservierung)
         Buchung buchung = new Buchung();
         buchung.setStatus("GEBUCHT");
         buchung.setKundenEmail(res.getKundenEmail());

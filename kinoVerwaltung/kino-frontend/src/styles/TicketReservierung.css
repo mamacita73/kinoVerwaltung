@@ -46,13 +46,23 @@ input-tr, select-tr {
     margin-top: 20px;
 }
 
-/* Stil für den Reservieren-Button */
+/* Container für die Buttons */
+.button-container-tr {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 20px; /* Abstand zwischen den Buttons */
+    margin-top: 20px;
+}
+
+/* Stil für die Buttons */
 .button-tr {
     background-color: #3498db;
     color: #fff;
-    padding: 10px;
+    padding: 15px;
     border: none;
     cursor: pointer;
-    font-size: 16px;
-    width: 250px;
+    font-size: 18px;
+    width: 250px;;
+    text-align: center;
 }

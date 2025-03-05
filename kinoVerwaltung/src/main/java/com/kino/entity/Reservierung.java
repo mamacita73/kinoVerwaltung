@@ -1,5 +1,6 @@
 package com.kino.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -11,6 +12,7 @@ import java.util.List;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
+@JsonIgnoreProperties({"benutzer", "reservierungSitze", "vorstellung"})
 public class Reservierung {
 
     @Id
@@ -29,7 +31,6 @@ public class Reservierung {
     @Column(nullable = false)
     private String kundenEmail;
 
-    // Beispiel: Sie können optional dieses Feld für "Datum der Reservierung" verwenden
     private String datumReservierung;  // Format "YYYY-MM-DD"
 
     // Falls Sie es brauchen:
@@ -50,4 +51,6 @@ public class Reservierung {
 
     @OneToMany(mappedBy = "reservierung", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<ReservierungSitz> reservierungSitze;
+
+
 }

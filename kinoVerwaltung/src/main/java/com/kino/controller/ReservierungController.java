@@ -36,7 +36,6 @@ public class ReservierungController {
     private final ReservierungRepository reservierungRepository;
     private final RabbitTemplate rabbitTemplate;  // kommt aus RabbitConfig
     private final AsyncCommandSender asyncCommandSender; // <-- neu injizieren
-    private final ObjectMapper objectMapper;
 
     // Konstruktor-Injektion aller benötigten Beans
     @Autowired
@@ -47,8 +46,7 @@ public class ReservierungController {
             BenutzerRepository benutzerRepository,
             ReservierungRepository reservierungRepository,
             RabbitTemplate rabbitTemplate,
-            AsyncCommandSender asyncCommandSender,
-            ObjectMapper objectMapper
+            AsyncCommandSender asyncCommandSender // <-- hier injizieren
     ) {
         this.reservierungService = reservierungService;
         this.vorstellungRepository = vorstellungRepository;
@@ -57,7 +55,6 @@ public class ReservierungController {
         this.reservierungRepository = reservierungRepository;
         this.rabbitTemplate = rabbitTemplate;
         this.asyncCommandSender = asyncCommandSender; // <-- Instanz merken
-        this.objectMapper = objectMapper;
     }
 
     @GetMapping
@@ -67,43 +64,30 @@ public class ReservierungController {
 
     // Endpoint zum Anlegen einer neuen Reservierung
     @PostMapping("/anlegen")
-    public ResponseEntity<Map<String, String>> createReservierung(@RequestBody Map<String, Object> requestBody) {
+    public ResponseEntity<?> createReservierung(@RequestBody Map<String, Object> requestBody) {
         try {
-            // Extrahiere und setze die kundenEmail aus dem Request-Header (z.B. via getCurrentUserEmail())
+            // E-Mail des aktuell eingeloggten Benutzers ermitteln
             String currentUserEmail = getCurrentUserEmail();
             Map<String, Object> payload = (Map<String, Object>) requestBody.get("payload");
             if (payload == null) {
                 payload = new HashMap<>();
             }
+            // Überschreibe oder setze kundenEmail im Payload
             payload.put("kundenEmail", currentUserEmail);
+            requestBody.put("payload", payload);
 
-            // Hier synchron den Service aufrufen:
-            Long vorstellungId = ((Number) payload.get("vorstellungId")).longValue();
-            String kategorie = (String) payload.get("kategorie");
-            int anzahl = ((Number) payload.get("anzahl")).intValue();
-            String kundenEmail = (String) payload.get("kundenEmail");
-            String datum = (String) payload.get("datum");
-            String status = (String) payload.get("status");
-
-            Reservierung reservierung = reservierungService.reservierungAnlegen(
-                    vorstellungId, kategorie, anzahl, kundenEmail, datum, status
-            );
+            // Sende den Command asynchron über RabbitMQ
+            asyncCommandSender.sendCommand("RESERVIERUNG_WRITE", payload);
 
             Map<String, String> response = new HashMap<>();
             response.put("success", "true");
-            response.put("message", "Reservierung erfolgreich angelegt.");
-            response.put("reservierungsnummer", reservierung.getReservierungsnummer());
+            response.put("message", "Reservierungs-Command gesendet.");
             return ResponseEntity.ok(response);
-        } catch (IllegalStateException e) {
-            // Hier wird der spezifische Fehler (z.B. Vorstellung schon begonnen) als HTTP 400 zurückgegeben.
-            return ResponseEntity.badRequest().body(Collections.singletonMap("error", e.getMessage()));
         } catch (Exception e) {
             e.printStackTrace();
-            return ResponseEntity.status(409).body(Collections.singletonMap("error", e.getMessage()));
+            return ResponseEntity.status(409).body(Collections.singletonMap("message", e.getMessage()));
         }
     }
-
-
 
 
     // PUT: Reservierung stornieren (Write-Command über RabbitMQ asynchron)
